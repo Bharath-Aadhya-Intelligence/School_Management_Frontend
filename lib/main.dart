@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
+import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/admin/staff_management_screen.dart';
@@ -39,14 +40,20 @@ class _SchoolManagementAppState extends State<SchoolManagementApp> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     _router = GoRouter(
-      initialLocation: '/login',
+      initialLocation: '/splash',
       refreshListenable: authProvider,
       redirect: (context, state) {
         final isLoggedIn = authProvider.isLoggedIn;
         final isLoginPage = state.matchedLocation == '/login';
+        final isSplashPage = state.matchedLocation == '/splash';
 
+        // Always allow Splash Screen to show its animation
+        if (isSplashPage) return null;
+
+        // If not logged in and not heading to login (or splash), force login
         if (!isLoggedIn && !isLoginPage) return '/login';
 
+        // If logged in and trying to access login, redirect to proper dashboard
         if (isLoggedIn && isLoginPage) {
           return authProvider.isAdmin ? '/admin' : '/staff';
         }
@@ -54,6 +61,7 @@ class _SchoolManagementAppState extends State<SchoolManagementApp> {
         return null;
       },
       routes: [
+        GoRoute(path: '/splash', builder: (ctx, _) => const SplashScreen()),
         GoRoute(path: '/login', builder: (ctx, _) => const LoginScreen()),
 
         // Admin Routes

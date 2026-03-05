@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/auth_provider.dart';
+
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/stat_card.dart';
+import '../shared/attendance_screen.dart';
+import 'attendance_history_screen.dart';
+import 'staff_settings_screen.dart';
 
 class StaffDashboard extends StatefulWidget {
   const StaffDashboard({super.key});
@@ -16,6 +19,133 @@ class StaffDashboard extends StatefulWidget {
 }
 
 class _StaffDashboardState extends State<StaffDashboard> {
+  int _currentIndex = 0;
+  ClassModel? _myClass;
+  bool _isLoadingClass = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClassId();
+  }
+
+  Future<void> _loadClassId() async {
+    try {
+      final classData = await ApiClient.get('/classes/my');
+      setState(() {
+        _myClass = ClassModel.fromJson(classData);
+        _isLoadingClass = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingClass = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoadingClass) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final classId = _myClass?.classId ?? '';
+    final className = _myClass?.name ?? 'My Class';
+
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          _StaffHomeView(
+            myClass: _myClass,
+            onClassCreated: _loadClassId,
+          ),
+          SafeArea(
+            child: classId.isEmpty
+                ? _NoClassTabMessage()
+                : AttendanceScreen(classId: classId, className: className),
+          ),
+          SafeArea(
+            child: classId.isEmpty
+                ? _NoClassTabMessage()
+                : AttendanceHistoryScreen(classId: classId),
+          ),
+          const SafeArea(child: StaffSettingsScreen()),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          selectedItemColor: AppTheme.staffPurple,
+          unselectedItemColor: AppTheme.textSecondary,
+          selectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w500),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.how_to_reg_outlined),
+              activeIcon: Icon(Icons.how_to_reg_rounded),
+              label: 'Attendance',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history_outlined),
+              activeIcon: Icon(Icons.history_rounded),
+              label: 'History',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings_rounded),
+              label: 'Settings',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NoClassTabMessage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'Please create a class in the Home tab first.',
+        style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 16),
+      ),
+    );
+  }
+}
+
+class _StaffHomeView extends StatefulWidget {
+  final ClassModel? myClass;
+  final VoidCallback onClassCreated;
+
+  const _StaffHomeView({this.myClass, required this.onClassCreated});
+
+  @override
+  State<_StaffHomeView> createState() => _StaffHomeViewState();
+}
+
+class _StaffHomeViewState extends State<_StaffHomeView> {
   ClassModel? _myClass;
   bool _isLoading = true;
   String? _error;
@@ -41,21 +171,25 @@ class _StaffDashboardState extends State<StaffDashboard> {
       final students = await ApiClient.get('/students/${cls.classId}');
       final activeStudents =
           (students as List).where((s) => s['is_active'] == true).length;
-      setState(() {
-        _myClass = cls;
-        _totalStudents = activeStudents;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _myClass = cls;
+          _totalStudents = activeStudents;
+          _isLoading = false;
+        });
+      }
     } on ApiException catch (e) {
       // Detect "no class" specifically vs a real error
       final isNoClass = e.message.toLowerCase().contains('no class') ||
           e.message.toLowerCase().contains('not found') ||
           e.statusCode == 404;
-      setState(() {
-        _hasNoClass = isNoClass;
-        _error = isNoClass ? null : e.message;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _hasNoClass = isNoClass;
+          _error = isNoClass ? null : e.message;
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -65,6 +199,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
     try {
       await ApiClient.post('/classes/', {'name': name.trim()});
       await _fetchMyClass();
+      widget.onClassCreated();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -127,17 +262,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Staff Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () => auth.logout(),
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/auth_provider.dart';
+
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/stat_card.dart';
+import 'admin_settings_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -16,6 +17,63 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: const [
+          _AdminHomeView(),
+          SafeArea(child: AdminSettingsScreen()),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          selectedItemColor: AppTheme.primaryBlue,
+          unselectedItemColor: AppTheme.textSecondary,
+          selectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w500),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings_rounded),
+              label: 'Settings',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminHomeView extends StatefulWidget {
+  const _AdminHomeView();
+
+  @override
+  State<_AdminHomeView> createState() => _AdminHomeViewState();
+}
+
+class _AdminHomeViewState extends State<_AdminHomeView> {
   List<ClassModel> _classes = [];
   bool _isLoading = true;
   String? _error;
@@ -38,10 +96,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
         _isLoading = false;
       });
     } on ApiException catch (e) {
-      setState(() {
-        _error = e.message;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -138,8 +198,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
@@ -153,10 +211,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
             icon: const Icon(Icons.payments_outlined),
             tooltip: 'Salary',
             onPressed: () => context.push('/admin/salary'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () => auth.logout(),
           ),
         ],
       ),
