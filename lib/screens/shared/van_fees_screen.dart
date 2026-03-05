@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/app_drawer.dart';
+import '../../services/file_service.dart';
 
 class VanFeesScreen extends StatefulWidget {
   final String classId;
@@ -56,10 +56,12 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
         _isLoading = false;
       });
     } on ApiException catch (e) {
-      setState(() {
-        _error = e.message;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -70,11 +72,44 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
       await ApiClient.patch('/van-fees/$studentId/$month?year=$_selectedYear');
       await _fetchVanFees();
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+      }
     } finally {
       if (mounted) setState(() => _toggling = false);
+    }
+  }
+
+  Future<void> _downloadPdf() async {
+    try {
+      final fileName = 'van_fees_${widget.className}_$_selectedYear.pdf';
+      final path =
+          '/exports/van-fees/${widget.classId}/pdf?year=$_selectedYear';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Generating PDF...')));
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Export failed: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  Future<void> _downloadExcel() async {
+    try {
+      final fileName = 'van_fees_${widget.className}_$_selectedYear.xlsx';
+      final path =
+          '/exports/van-fees/${widget.classId}/excel?year=$_selectedYear';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Generating Excel...')));
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Export failed: $e'), backgroundColor: Colors.red));
+      }
     }
   }
 
@@ -95,49 +130,27 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
           ],
         ),
         actions: [
-          // Year Selector
+          IconButton(
+              icon: const Icon(Icons.picture_as_pdf_rounded),
+              tooltip: 'Export PDF',
+              onPressed: _downloadPdf),
+          IconButton(
+              icon: const Icon(Icons.table_chart_rounded),
+              tooltip: 'Export Excel',
+              onPressed: _downloadExcel),
           GestureDetector(
-            onTap: () async {
-              final years = [
-                DateTime.now().year - 1,
-                DateTime.now().year,
-                DateTime.now().year + 1
-              ];
-              final selected = await showDialog<int>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Select Year'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: years
-                        .map((y) => ListTile(
-                              title: Text('$y'),
-                              selected: y == _selectedYear,
-                              selectedColor: AppTheme.primaryBlue,
-                              onTap: () => Navigator.pop(ctx, y),
-                            ))
-                        .toList(),
-                  ),
-                ),
-              );
-              if (selected != null) {
-                setState(() => _selectedYear = selected);
-                _fetchVanFees();
-              }
-            },
+            onTap: _showYearSelector,
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppTheme.primaryBlue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
+                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Text('$_selectedYear',
                     style: GoogleFonts.inter(
                         fontWeight: FontWeight.w600,
                         color: AppTheme.primaryBlue)),
-                const SizedBox(width: 4),
                 const Icon(Icons.keyboard_arrow_down_rounded,
                     size: 16, color: AppTheme.primaryBlue),
               ]),
@@ -148,23 +161,9 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.error_outline_rounded,
-                      size: 64, color: AppTheme.unpaidRed),
-                  const SizedBox(height: 16),
-                  Text(_error!),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                      onPressed: _fetchVanFees, child: const Text('Retry')),
-                ]))
+              ? _buildError()
               : _vanFees.isEmpty
-                  ? const EmptyState(
-                      icon: Icons.directions_bus_outlined,
-                      title: 'No Van Students',
-                      subtitle:
-                          'No students are enrolled in van for this class',
-                    )
+                  ? const Center(child: Text('No Van Students Enrolled'))
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: _vanFees.length,
@@ -179,6 +178,45 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
                     ),
     );
   }
+
+  void _showYearSelector() async {
+    final years = [
+      DateTime.now().year - 1,
+      DateTime.now().year,
+      DateTime.now().year + 1
+    ];
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Select Year'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: years
+              .map((y) => ListTile(
+                    title: Text('$y'),
+                    selected: y == _selectedYear,
+                    onTap: () => Navigator.pop(ctx, y),
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+    if (selected != null) {
+      setState(() => _selectedYear = selected);
+      _fetchVanFees();
+    }
+  }
+
+  Widget _buildError() => Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.error_outline_rounded,
+              size: 64, color: AppTheme.unpaidRed),
+          const SizedBox(height: 16),
+          Text(_error!),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _fetchVanFees, child: const Text('Retry')),
+        ]),
+      );
 }
 
 class _VanFeeCard extends StatelessWidget {
@@ -188,13 +226,12 @@ class _VanFeeCard extends StatelessWidget {
   final Function(String, int) onToggle;
   final bool isToggling;
 
-  const _VanFeeCard({
-    required this.vanFee,
-    required this.selectedYear,
-    required this.monthNames,
-    required this.onToggle,
-    required this.isToggling,
-  });
+  const _VanFeeCard(
+      {required this.vanFee,
+      required this.selectedYear,
+      required this.monthNames,
+      required this.onToggle,
+      required this.isToggling});
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +259,7 @@ class _VanFeeCard extends StatelessWidget {
                 style: GoogleFonts.inter(
                     fontSize: 14, fontWeight: FontWeight.w600)),
             const Spacer(),
-            Text('$paidMonths/ ${yearRecords.length} paid',
+            Text('$paidMonths / ${yearRecords.length} paid',
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppTheme.textSecondary)),
           ]),
@@ -232,17 +269,14 @@ class _VanFeeCard extends StatelessWidget {
             runSpacing: 6,
             children: List.generate(12, (idx) {
               final month = idx + 1;
-              final record = yearRecords.firstWhere(
-                (r) => r.month == month,
-                orElse: () => VanFeeRecord(
-                    month: month, year: selectedYear, status: 'unpaid'),
-              );
+              final record = yearRecords.firstWhere((r) => r.month == month,
+                  orElse: () => VanFeeRecord(
+                      month: month, year: selectedYear, status: 'unpaid'));
               final isPaid = record.isPaid;
               return GestureDetector(
                 onTap:
                     isToggling ? null : () => onToggle(vanFee.studentId, month),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                child: Container(
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
@@ -253,34 +287,28 @@ class _VanFeeCard extends StatelessWidget {
                             : AppTheme.surfaceLight),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isPaid
-                          ? AppTheme.paidGreen
-                          : (isDark
-                              ? AppTheme.darkBorder
-                              : AppTheme.borderLight),
-                      width: isPaid ? 1.5 : 1,
-                    ),
+                        color: isPaid
+                            ? AppTheme.paidGreen
+                            : (isDark
+                                ? AppTheme.darkBorder
+                                : AppTheme.borderLight)),
                   ),
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          monthNames[idx],
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                        Text(monthNames[idx],
+                            style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: isPaid
+                                    ? AppTheme.paidGreen
+                                    : AppTheme.textSecondary)),
+                        Icon(
+                            isPaid ? Icons.check_rounded : Icons.remove_rounded,
+                            size: 14,
                             color: isPaid
                                 ? AppTheme.paidGreen
-                                : AppTheme.textSecondary,
-                          ),
-                        ),
-                        Icon(
-                          isPaid ? Icons.check_rounded : Icons.remove_rounded,
-                          size: 14,
-                          color: isPaid
-                              ? AppTheme.paidGreen
-                              : AppTheme.textSecondary,
-                        ),
+                                : AppTheme.textSecondary),
                       ]),
                 ),
               );

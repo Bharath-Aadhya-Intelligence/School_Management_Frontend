@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../theme/app_theme.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AttendanceHistoryScreen extends StatefulWidget {
   final String classId;
@@ -19,6 +20,8 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   List<dynamic> _attendanceRecords = [];
   bool _isLoading = false;
   String? _error;
+  int _totalPresent = 0;
+  int _totalAbsent = 0;
 
   @override
   void initState() {
@@ -36,9 +39,11 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     try {
       final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
       final data =
-          await ApiClient.get('/attendance/${widget.classId}?date=$dateStr');
+          await ApiClient.get('/attendance/${widget.classId}/$dateStr');
       setState(() {
-        _attendanceRecords = data as List;
+        _attendanceRecords = data['records'] as List;
+        _totalPresent = data['total_present'] ?? 0;
+        _totalAbsent = data['total_absent'] ?? 0;
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -78,11 +83,46 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     }
   }
 
-  void _shareViaWhatsApp() {
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   const SnackBar(content: Text('Sharing via WhatsApp...')),
-    // );
-    // TODO: Implement actual WhatsApp sharing using url_launcher with PRD format template.
+  Future<void> _shareViaWhatsApp() async {
+    final dateStr = DateFormat('dd MMM yyyy').format(_selectedDate);
+    final buffer = StringBuffer();
+    buffer.writeln('📅 *Attendance Report - $dateStr*');
+    buffer.writeln('--------------------------------');
+    buffer.writeln('✅ Present: $_totalPresent');
+    buffer.writeln('❌ Absent: $_totalAbsent');
+    buffer.writeln('--------------------------------');
+
+    final absents =
+        _attendanceRecords.where((r) => r['status'] == 'A').toList();
+    if (absents.isNotEmpty) {
+      buffer.writeln('\n*Absent Students:*');
+      for (var r in absents) {
+        buffer.writeln('• ${r['student_name']}');
+      }
+    } else {
+      buffer.writeln('\n*All students were present!* 🎉');
+    }
+
+    final message = Uri.encodeComponent(buffer.toString());
+    final url = Uri.parse('https://wa.me/?text=$message');
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch WhatsApp')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error sharing: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -175,7 +215,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                             final status = record['status'];
                             final studentName =
                                 record['student_name'] ?? 'Unknown Student';
-                            final isPresent = status == 'present';
+                            final isPresent = status == 'P';
 
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),

@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/app_drawer.dart';
+import '../../services/file_service.dart';
 
 class FeesScreen extends StatefulWidget {
   final String classId;
@@ -38,10 +38,12 @@ class _FeesScreenState extends State<FeesScreen> {
         _isLoading = false;
       });
     } on ApiException catch (e) {
-      setState(() {
-        _error = e.message;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -49,14 +51,16 @@ class _FeesScreenState extends State<FeesScreen> {
     try {
       await ApiClient.post('/fees/init/${widget.classId}', {});
       _fetchFees();
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Fee records initialized'),
             backgroundColor: AppTheme.paidGreen));
+      }
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+      }
     }
   }
 
@@ -67,33 +71,47 @@ class _FeesScreenState extends State<FeesScreen> {
       await ApiClient.patch('/fees/$studentId/$installmentNo');
       await _fetchFees();
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+      }
     } finally {
       if (mounted) setState(() => _toggling = false);
     }
   }
 
   void _downloadPdf() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Downloading PDF report...'),
-          backgroundColor: AppTheme.primaryBlue),
-    );
+    try {
+      final fileName = 'fees_${widget.className}.pdf';
+      final path = '/exports/fees/${widget.classId}/pdf';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Generating PDF...')));
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Export failed: $e'), backgroundColor: Colors.red));
+      }
+    }
   }
 
   void _downloadExcel() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Downloading Excel report...'),
-          backgroundColor: AppTheme.primaryBlue),
-    );
+    try {
+      final fileName = 'fees_${widget.className}.xlsx';
+      final path = '/exports/fees/${widget.classId}/excel';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Generating Excel...')));
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Export failed: $e'), backgroundColor: Colors.red));
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calculate collection stats
     int totalInstallments = _fees.length * 4;
     int paidInstallments = _fees.fold(0, (sum, f) => sum + f.paidCount);
 
@@ -130,7 +148,6 @@ class _FeesScreenState extends State<FeesScreen> {
               ? _buildError()
               : Column(
                   children: [
-                    // Stats Banner
                     Container(
                       margin: const EdgeInsets.all(16),
                       padding: const EdgeInsets.all(16),
@@ -145,33 +162,28 @@ class _FeesScreenState extends State<FeesScreen> {
                       child: Row(
                         children: [
                           Expanded(
-                            child: _StatItem(
-                                label: 'Students',
-                                value: '${_fees.length}',
-                                icon: Icons.people_rounded),
-                          ),
+                              child: _StatItem(
+                                  label: 'Students',
+                                  value: '${_fees.length}',
+                                  icon: Icons.people_rounded)),
                           Container(
                               width: 1, height: 40, color: Colors.white24),
                           Expanded(
-                            child: _StatItem(
-                                label: 'Paid',
-                                value: '$paidInstallments',
-                                icon: Icons.check_circle_rounded),
-                          ),
+                              child: _StatItem(
+                                  label: 'Paid',
+                                  value: '$paidInstallments',
+                                  icon: Icons.check_circle_rounded)),
                           Container(
                               width: 1, height: 40, color: Colors.white24),
                           Expanded(
-                            child: _StatItem(
-                                label: 'Pending',
-                                value:
-                                    '${totalInstallments - paidInstallments}',
-                                icon: Icons.pending_rounded),
-                          ),
+                              child: _StatItem(
+                                  label: 'Pending',
+                                  value:
+                                      '${totalInstallments - paidInstallments}',
+                                  icon: Icons.pending_rounded)),
                         ],
                       ),
                     ),
-
-                    // Init Button if empty
                     if (_fees.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -180,23 +192,30 @@ class _FeesScreenState extends State<FeesScreen> {
                           icon: const Icon(Icons.add_circle_outline_rounded),
                           label: const Text('Initialize Fee Records'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.adminGreen,
-                            minimumSize: const Size.fromHeight(48),
-                          ),
+                              backgroundColor: AppTheme.adminGreen,
+                              minimumSize: const Size.fromHeight(48),
+                              foregroundColor: Colors.white),
                         ),
                       ),
-
-                    // Fee List
                     Expanded(
                       child: _fees.isEmpty
-                          ? EmptyState(
-                              icon: Icons.receipt_long_outlined,
-                              title: 'No Fee Records',
-                              subtitle:
-                                  'Click Initialize to create fee records for all students',
-                              action: ElevatedButton(
-                                  onPressed: _initFees,
-                                  child: const Text('Initialize Fees')),
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.receipt_long_outlined,
+                                      size: 64, color: AppTheme.textSecondary),
+                                  const SizedBox(height: 16),
+                                  const Text('No Fee Records'),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                      'Click Initialize to create fee records'),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                      onPressed: _initFees,
+                                      child: const Text('Initialize Fees')),
+                                ],
+                              ),
                             )
                           : ListView.separated(
                               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -204,10 +223,9 @@ class _FeesScreenState extends State<FeesScreen> {
                               separatorBuilder: (_, __) =>
                                   const SizedBox(height: 8),
                               itemBuilder: (ctx, i) => _FeeCard(
-                                fee: _fees[i],
-                                onToggle: _toggleFee,
-                                isToggling: _toggling,
-                              ),
+                                  fee: _fees[i],
+                                  onToggle: _toggleFee,
+                                  isToggling: _toggling),
                             ),
                     ),
                   ],
@@ -275,10 +293,25 @@ class _FeeCard extends StatelessWidget {
                 style: GoogleFonts.inter(
                     fontSize: 14, fontWeight: FontWeight.w600)),
             const Spacer(),
-            StatusBadge(
-              status: fee.paidCount == 4 ? 'paid' : 'unpaid',
-              paidLabel: 'All Paid',
-              unpaidLabel: '${fee.paidCount}/4 Paid',
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: (fee.paidCount == 4
+                        ? AppTheme.paidGreen
+                        : AppTheme.unpaidRed)
+                    .withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                fee.paidCount == 4 ? 'All Paid' : '${fee.paidCount}/4 Paid',
+                style: TextStyle(
+                  color: fee.paidCount == 4
+                      ? AppTheme.paidGreen
+                      : AppTheme.unpaidRed,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ]),
           const SizedBox(height: 10),
@@ -303,21 +336,19 @@ class _FeeCard extends StatelessWidget {
                           : AppTheme.unpaidRed.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isPaid
-                            ? AppTheme.paidGreen.withOpacity(0.4)
-                            : AppTheme.unpaidRed.withOpacity(0.2),
-                      ),
+                          color: isPaid
+                              ? AppTheme.paidGreen.withOpacity(0.4)
+                              : AppTheme.unpaidRed.withOpacity(0.2)),
                     ),
                     child: Column(children: [
                       Icon(
-                        isPaid
-                            ? Icons.check_circle_rounded
-                            : Icons.radio_button_unchecked_rounded,
-                        size: 20,
-                        color: isPaid
-                            ? AppTheme.paidGreen
-                            : AppTheme.unpaidRed.withOpacity(0.5),
-                      ),
+                          isPaid
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          size: 20,
+                          color: isPaid
+                              ? AppTheme.paidGreen
+                              : AppTheme.unpaidRed.withOpacity(0.5)),
                       const SizedBox(height: 2),
                       Text('Q${idx + 1}',
                           style: GoogleFonts.inter(

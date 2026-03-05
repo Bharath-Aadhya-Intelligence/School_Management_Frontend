@@ -3,23 +3,81 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
-// import 'package:url_launcher/url_launcher.dart'; // Add later if needed for real exports
+import '../../api/api_client.dart';
+import '../../models/models.dart';
+import '../../services/file_service.dart';
 
-class AdminSettingsScreen extends StatelessWidget {
+class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
 
-  void _exportPdf(BuildContext context) {
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   const SnackBar(content: Text('Exporting PDF...')),
-    // );
-    // TODO: Implement actual PDF export API call
+  @override
+  State<AdminSettingsScreen> createState() => _AdminSettingsScreenState();
+}
+
+class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
+  List<ClassModel> _classes = [];
+  ClassModel? _selectedClass;
+  bool _isLoadingClasses = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchClasses();
   }
 
-  void _exportExcel(BuildContext context) {
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   const SnackBar(content: Text('Exporting Excel...')),
-    // );
-    // TODO: Implement actual Excel export API call
+  Future<void> _fetchClasses() async {
+    try {
+      final data = await ApiClient.get('/classes/');
+      setState(() {
+        _classes = (data as List).map((e) => ClassModel.fromJson(e)).toList();
+        if (_classes.isNotEmpty) _selectedClass = _classes.first;
+        _isLoadingClasses = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingClasses = false);
+    }
+  }
+
+  Future<void> _exportPdf() async {
+    if (_selectedClass == null) return;
+    try {
+      final fileName = 'fee_report_${_selectedClass!.name}.pdf';
+      final path = '/exports/fees/${_selectedClass!.classId}/pdf';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Generating PDF...')),
+      );
+
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Export failed: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _exportExcel() async {
+    if (_selectedClass == null) return;
+    try {
+      final fileName = 'fee_report_${_selectedClass!.name}.xlsx';
+      final path = '/exports/fees/${_selectedClass!.classId}/excel';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Generating Excel...')),
+      );
+
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Export failed: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -64,24 +122,58 @@ class AdminSettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            'Exports',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
+
+          Text('Class Selection',
+              style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 8),
+          Text('Select a class for fee exports',
+              style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 12),
+
+          if (_isLoadingClasses)
+            const Center(child: CircularProgressIndicator())
+          else if (_classes.isEmpty)
+            const Text('No classes found.')
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.borderLight),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<ClassModel>(
+                  value: _selectedClass,
+                  isExpanded: true,
+                  items: _classes
+                      .map((c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(c.name),
+                          ))
+                      .toList(),
+                  onChanged: (val) => setState(() => _selectedClass = val),
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 24),
+          Text('Exports', style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 12),
           _SettingsItem(
             icon: Icons.picture_as_pdf_outlined,
             title: 'Export Student Fee Status (PDF)',
-            subtitle: 'Includes Paid and Pending installments per student',
-            onTap: () => _exportPdf(context),
+            subtitle: 'Paid and Pending installments',
+            onTap: _exportPdf,
           ),
           const SizedBox(height: 12),
           _SettingsItem(
             icon: Icons.table_chart_outlined,
             title: 'Export Student Fee Status (Excel)',
-            subtitle: 'Includes Paid and Pending installments per student',
-            onTap: () => _exportExcel(context),
+            subtitle: 'Paid and Pending installments',
+            onTap: _exportExcel,
           ),
+
           const Spacer(),
           ElevatedButton.icon(
             onPressed: () => auth.logout(),

@@ -72,7 +72,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
                 ? _NoClassTabMessage()
                 : AttendanceHistoryScreen(classId: classId),
           ),
-          const SafeArea(child: StaffSettingsScreen()),
+          SafeArea(child: StaffSettingsScreen(classId: classId)),
         ],
       ),
       bottomNavigationBar: Container(

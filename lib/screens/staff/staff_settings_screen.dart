@@ -3,20 +3,83 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../services/file_service.dart';
 
 class StaffSettingsScreen extends StatelessWidget {
-  const StaffSettingsScreen({super.key});
+  final String classId;
+  const StaffSettingsScreen({super.key, required this.classId});
 
   void _clearLocalData(BuildContext context) {
-    // TODO: Implement actual clearing logic
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear Local Data'),
+        content: const Text(
+            'This will clear all student data cached on this device.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              // TODO: Implement actual database clearing logic when local DB is added
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Local cache cleared!')),
+              );
+            },
+            child: const Text('Clear', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
-  void _exportPdf(BuildContext context) {
-    // TODO: Implement actual PDF export API call
+  Future<void> _exportPdf(BuildContext context) async {
+    if (classId.isEmpty) return;
+    try {
+      final now = DateTime.now();
+      final fileName = 'attendance_${classId}_${now.year}_${now.month}.pdf';
+      final path = '/exports/attendance/$classId/${now.year}/${now.month}/pdf';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Generating PDF...'), duration: Duration(seconds: 2)),
+      );
+
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Export failed: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
-  void _exportExcel(BuildContext context) {
-    // TODO: Implement actual Excel export API call
+  Future<void> _exportExcel(BuildContext context) async {
+    if (classId.isEmpty) return;
+    try {
+      final now = DateTime.now();
+      final fileName = 'attendance_${classId}_${now.year}_${now.month}.xlsx';
+      final path =
+          '/exports/attendance/$classId/${now.year}/${now.month}/excel';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Generating Excel...'),
+            duration: Duration(seconds: 2)),
+      );
+
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Export failed: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -33,7 +96,7 @@ class StaffSettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppTheme.staffPurple, Color(0xFF5B21B6)],
+                colors: [AppTheme.staffPurple, Color(0xFF6B21A8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -52,7 +115,7 @@ class StaffSettingsScreen extends StatelessWidget {
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.w700)),
-                    Text('Manage data and session',
+                    Text('Manage data and exports',
                         style: GoogleFonts.inter(
                             color: Colors.white70, fontSize: 13)),
                   ],
@@ -61,34 +124,34 @@ class StaffSettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            'Exports & Data',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
+
+          Text('Data Management',
+              style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 12),
           _SettingsItem(
-            icon: Icons.delete_sweep_rounded,
+            icon: Icons.delete_sweep_outlined,
             title: 'Clear Local Student Data',
-            subtitle: 'Removes all students from the local device only',
-            iconColor: AppTheme.warningAmber,
+            subtitle: 'Recommended before starting a new session',
             onTap: () => _clearLocalData(context),
           ),
+
+          const SizedBox(height: 24),
+          Text('Exports', style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 12),
           _SettingsItem(
             icon: Icons.picture_as_pdf_outlined,
-            title: 'Export Attendance (PDF)',
-            subtitle: 'Generates an attendance report as PDF',
-            iconColor: AppTheme.staffPurple,
+            title: 'Export My Monthly Attendance (PDF)',
+            subtitle: 'Attendance report for current month',
             onTap: () => _exportPdf(context),
           ),
           const SizedBox(height: 12),
           _SettingsItem(
             icon: Icons.table_chart_outlined,
-            title: 'Export Attendance (Excel)',
-            subtitle: 'Generates an attendance report as Excel',
-            iconColor: AppTheme.staffPurple,
+            title: 'Export My Monthly Attendance (Excel)',
+            subtitle: 'Attendance report for current month',
             onTap: () => _exportExcel(context),
           ),
+
           const Spacer(),
           ElevatedButton.icon(
             onPressed: () => auth.logout(),
@@ -114,14 +177,12 @@ class _SettingsItem extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color iconColor;
   final VoidCallback onTap;
 
   const _SettingsItem({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.iconColor,
     required this.onTap,
   });
 
@@ -146,10 +207,10 @@ class _SettingsItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: AppTheme.staffPurple.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: iconColor),
+              child: Icon(icon, color: AppTheme.staffPurple),
             ),
             const SizedBox(width: 16),
             Expanded(

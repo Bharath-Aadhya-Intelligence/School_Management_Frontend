@@ -4,6 +4,7 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_drawer.dart';
+import '../../services/file_service.dart';
 
 class SalaryScreen extends StatefulWidget {
   const SalaryScreen({super.key});
@@ -90,12 +91,50 @@ class _SalaryScreenState extends State<SalaryScreen> {
     }
   }
 
+  Future<void> _exportPdf() async {
+    try {
+      final fileName = 'staff_salary_$_selectedYear.pdf';
+      final path = '/exports/salary/$_selectedYear/pdf';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Generating PDF...')));
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Export failed: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  Future<void> _exportExcel() async {
+    try {
+      final fileName = 'staff_salary_$_selectedYear.xlsx';
+      final path = '/exports/salary/$_selectedYear/excel';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Generating Excel...')));
+      await FileService.downloadAndShare(path, fileName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Export failed: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Staff Salary'),
         actions: [
+          IconButton(
+              icon: const Icon(Icons.picture_as_pdf_rounded),
+              tooltip: 'Export PDF',
+              onPressed: _exportPdf),
+          IconButton(
+              icon: const Icon(Icons.table_chart_rounded),
+              tooltip: 'Export Excel',
+              onPressed: _exportExcel),
           // Year selector
           GestureDetector(
             onTap: () async {
@@ -143,22 +182,6 @@ class _SalaryScreenState extends State<SalaryScreen> {
               ]),
             ),
           ),
-          IconButton(
-              icon: const Icon(Icons.picture_as_pdf_rounded),
-              tooltip: 'Export PDF',
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Downloading PDF...'),
-                    backgroundColor: AppTheme.primaryBlue));
-              }),
-          IconButton(
-              icon: const Icon(Icons.table_chart_rounded),
-              tooltip: 'Export Excel',
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Downloading Excel...'),
-                    backgroundColor: AppTheme.primaryBlue));
-              }),
         ],
       ),
       body: _isLoading
