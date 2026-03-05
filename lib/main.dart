@@ -1,0 +1,140 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+
+import 'providers/auth_provider.dart';
+import 'screens/login_screen.dart';
+import 'screens/admin/admin_dashboard.dart';
+import 'screens/admin/staff_management_screen.dart';
+import 'screens/admin/salary_screen.dart';
+import 'screens/shared/students_screen.dart';
+import 'screens/shared/fees_screen.dart';
+import 'screens/shared/van_fees_screen.dart';
+import 'screens/shared/attendance_screen.dart';
+import 'screens/staff/staff_dashboard.dart';
+import 'theme/app_theme.dart';
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AuthProvider(),
+      child: const SchoolManagementApp(),
+    ),
+  );
+}
+
+class SchoolManagementApp extends StatefulWidget {
+  const SchoolManagementApp({super.key});
+
+  @override
+  State<SchoolManagementApp> createState() => _SchoolManagementAppState();
+}
+
+class _SchoolManagementAppState extends State<SchoolManagementApp> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    _router = GoRouter(
+      initialLocation: '/login',
+      refreshListenable: authProvider,
+      redirect: (context, state) {
+        final isLoggedIn = authProvider.isLoggedIn;
+        final isLoginPage = state.matchedLocation == '/login';
+
+        if (!isLoggedIn && !isLoginPage) return '/login';
+
+        if (isLoggedIn && isLoginPage) {
+          return authProvider.isAdmin ? '/admin' : '/staff';
+        }
+
+        return null;
+      },
+      routes: [
+        GoRoute(path: '/login', builder: (ctx, _) => const LoginScreen()),
+
+        // Admin Routes
+        GoRoute(path: '/admin', builder: (ctx, _) => const AdminDashboard()),
+        GoRoute(
+            path: '/admin/students/:classId',
+            builder: (ctx, state) {
+              final classId = state.pathParameters['classId']!;
+              final className = state.uri.queryParameters['name'] ?? 'Class';
+              return StudentsScreen(classId: classId, className: className);
+            }),
+        GoRoute(
+            path: '/admin/fees/:classId',
+            builder: (ctx, state) {
+              final classId = state.pathParameters['classId']!;
+              final className = state.uri.queryParameters['name'] ?? 'Class';
+              return FeesScreen(classId: classId, className: className);
+            }),
+        GoRoute(
+            path: '/admin/van-fees/:classId',
+            builder: (ctx, state) {
+              final classId = state.pathParameters['classId']!;
+              final className = state.uri.queryParameters['name'] ?? 'Class';
+              return VanFeesScreen(classId: classId, className: className);
+            }),
+        GoRoute(
+            path: '/admin/attendance/:classId',
+            builder: (ctx, state) {
+              final classId = state.pathParameters['classId']!;
+              final className = state.uri.queryParameters['name'] ?? 'Class';
+              return AttendanceScreen(classId: classId, className: className);
+            }),
+        GoRoute(
+            path: '/admin/staff',
+            builder: (ctx, _) => const StaffManagementScreen()),
+        GoRoute(
+            path: '/admin/salary', builder: (ctx, _) => const SalaryScreen()),
+
+        // Staff Routes
+        GoRoute(path: '/staff', builder: (ctx, _) => const StaffDashboard()),
+        GoRoute(
+            path: '/staff/students',
+            builder: (ctx, state) {
+              final classId = state.uri.queryParameters['classId'] ?? '';
+              final className = state.uri.queryParameters['name'] ?? 'My Class';
+              return StudentsScreen(classId: classId, className: className);
+            }),
+        GoRoute(
+            path: '/staff/fees',
+            builder: (ctx, state) {
+              final classId = state.uri.queryParameters['classId'] ?? '';
+              final className = state.uri.queryParameters['name'] ?? 'My Class';
+              return FeesScreen(classId: classId, className: className);
+            }),
+        GoRoute(
+            path: '/staff/van-fees',
+            builder: (ctx, state) {
+              final classId = state.uri.queryParameters['classId'] ?? '';
+              final className = state.uri.queryParameters['name'] ?? 'My Class';
+              return VanFeesScreen(classId: classId, className: className);
+            }),
+        GoRoute(
+            path: '/staff/attendance',
+            builder: (ctx, state) {
+              final classId = state.uri.queryParameters['classId'] ?? '';
+              final className = state.uri.queryParameters['name'] ?? 'My Class';
+              return AttendanceScreen(classId: classId, className: className);
+            }),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: 'School Management',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      routerConfig: _router,
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
