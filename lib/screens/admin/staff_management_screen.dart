@@ -55,6 +55,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
         .toList();
   }
 
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
   void _showAddDialog() {
     final nameCtrl = TextEditingController();
     final designationCtrl = TextEditingController();
@@ -115,8 +119,9 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
                     firstDate: DateTime(2000),
                     lastDate: DateTime.now(),
                   );
-                  if (picked != null)
+                  if (picked != null) {
                     joinDateCtrl.text = picked.toIso8601String().split('T')[0];
+                  }
                 },
               ),
               const SizedBox(height: 12),
@@ -143,10 +148,24 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
                 Expanded(
                     child: ElevatedButton(
                   onPressed: () async {
-                    if (nameCtrl.text.isEmpty ||
-                        designationCtrl.text.isEmpty ||
-                        salaryCtrl.text.isEmpty ||
-                        joinDateCtrl.text.isEmpty) return;
+                    if (nameCtrl.text.trim().isEmpty ||
+                        designationCtrl.text.trim().isEmpty ||
+                        salaryCtrl.text.trim().isEmpty ||
+                        joinDateCtrl.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Please fill all mandatory fields'),
+                          backgroundColor: AppTheme.unpaidRed));
+                      return;
+                    }
+
+                    final email = emailCtrl.text.trim();
+                    if (email.isNotEmpty && !_isValidEmail(email)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Please enter a valid email address'),
+                          backgroundColor: AppTheme.unpaidRed));
+                      return;
+                    }
+
                     Navigator.pop(ctx);
                     try {
                       await ApiClient.post('/staff/', {
@@ -154,25 +173,171 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
                         'designation': designationCtrl.text.trim(),
                         'salary': double.tryParse(salaryCtrl.text) ?? 0,
                         'join_date': joinDateCtrl.text,
-                        if (contactCtrl.text.isNotEmpty)
-                          'contact': contactCtrl.text.trim(),
-                        if (emailCtrl.text.isNotEmpty)
-                          'email': emailCtrl.text.trim(),
+                        'contact': contactCtrl.text.trim().isEmpty
+                            ? null
+                            : contactCtrl.text.trim(),
+                        'email': email.isEmpty ? null : email,
                       });
                       _fetchStaff();
-                      if (mounted)
+                      if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text('Staff added'),
                                 backgroundColor: AppTheme.paidGreen));
+                      }
                     } on ApiException catch (e) {
-                      if (mounted)
+                      if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             content: Text(e.message),
                             backgroundColor: AppTheme.unpaidRed));
+                      }
                     }
                   },
                   child: const Text('Add Staff'),
+                )),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditDialog(StaffModel staff) {
+    final nameCtrl = TextEditingController(text: staff.name);
+    final designationCtrl = TextEditingController(text: staff.designation);
+    final salaryCtrl = TextEditingController(text: staff.salary.toString());
+    final contactCtrl = TextEditingController(text: staff.contact ?? '');
+    final emailCtrl = TextEditingController(text: staff.email ?? '');
+    final joinDateCtrl = TextEditingController(text: staff.joinDate);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Edit Staff Member',
+                  style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 16),
+              TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                      labelText: 'Full Name *',
+                      prefixIcon: Icon(Icons.person_outline))),
+              const SizedBox(height: 12),
+              TextField(
+                  controller: designationCtrl,
+                  decoration: const InputDecoration(
+                      labelText: 'Designation *',
+                      prefixIcon: Icon(Icons.work_outline_rounded))),
+              const SizedBox(height: 12),
+              TextField(
+                  controller: salaryCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                      labelText: 'Monthly Salary *',
+                      prefixIcon: Icon(Icons.currency_rupee_rounded))),
+              const SizedBox(height: 12),
+              TextField(
+                controller: joinDateCtrl,
+                readOnly: true,
+                decoration: const InputDecoration(
+                    labelText: 'Join Date *',
+                    prefixIcon: Icon(Icons.date_range_rounded)),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate:
+                        DateTime.tryParse(staff.joinDate) ?? DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    joinDateCtrl.text = picked.toIso8601String().split('T')[0];
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                  controller: contactCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                      labelText: 'Contact',
+                      prefixIcon: Icon(Icons.phone_outlined))),
+              const SizedBox(height: 12),
+              TextField(
+                  controller: emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined))),
+              const SizedBox(height: 20),
+              Row(children: [
+                Expanded(
+                    child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'))),
+                const SizedBox(width: 12),
+                Expanded(
+                    child: ElevatedButton(
+                  onPressed: () async {
+                    if (nameCtrl.text.trim().isEmpty ||
+                        designationCtrl.text.trim().isEmpty ||
+                        salaryCtrl.text.trim().isEmpty ||
+                        joinDateCtrl.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Please fill all mandatory fields'),
+                          backgroundColor: AppTheme.unpaidRed));
+                      return;
+                    }
+
+                    final email = emailCtrl.text.trim();
+                    if (email.isNotEmpty && !_isValidEmail(email)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Please enter a valid email address'),
+                          backgroundColor: AppTheme.unpaidRed));
+                      return;
+                    }
+
+                    Navigator.pop(ctx);
+                    try {
+                      await ApiClient.put('/staff/${staff.staffId}', {
+                        'name': nameCtrl.text.trim(),
+                        'designation': designationCtrl.text.trim(),
+                        'salary': double.tryParse(salaryCtrl.text) ?? 0,
+                        'join_date': joinDateCtrl.text,
+                        'contact': contactCtrl.text.trim().isEmpty
+                            ? null
+                            : contactCtrl.text.trim(),
+                        'email': email.isEmpty ? null : email,
+                      });
+                      _fetchStaff();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Staff updated'),
+                                backgroundColor: AppTheme.paidGreen));
+                      }
+                    } on ApiException catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(e.message),
+                            backgroundColor: AppTheme.unpaidRed));
+                      }
+                    }
+                  },
+                  child: const Text('Update'),
                 )),
               ]),
             ],
@@ -204,14 +369,16 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
       try {
         await ApiClient.delete('/staff/${staff.staffId}');
         _fetchStaff();
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Staff removed'),
               backgroundColor: AppTheme.paidGreen));
+        }
       } on ApiException catch (e) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+        }
       }
     }
   }
@@ -299,10 +466,9 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
                     ),
                     Expanded(
                       child: filtered.isEmpty
-                          ? EmptyState(
-                              icon: Icons.people_outline_rounded,
-                              title: 'No Staff Members',
-                              subtitle: 'Add staff using the button below')
+                          ? const Center(
+                              child: Text('No Staff Members Found'),
+                            )
                           : ListView.separated(
                               padding:
                                   const EdgeInsets.fromLTRB(16, 8, 16, 100),
@@ -311,6 +477,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
                                   const SizedBox(height: 8),
                               itemBuilder: (ctx, i) => _StaffCard(
                                   staff: filtered[i],
+                                  onEdit: () => _showEditDialog(filtered[i]),
                                   onDelete: () => _deleteStaff(filtered[i])),
                             ),
                     ),
@@ -322,9 +489,11 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
 
 class _StaffCard extends StatelessWidget {
   final StaffModel staff;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _StaffCard({required this.staff, required this.onDelete});
+  const _StaffCard(
+      {required this.staff, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -391,9 +560,21 @@ class _StaffCard extends StatelessWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (v) {
-              if (v == 'delete') onDelete();
+              if (v == 'edit') {
+                onEdit();
+              } else if (v == 'delete') {
+                onDelete();
+              }
             },
             itemBuilder: (_) => [
+              const PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                      leading: Icon(Icons.edit_outlined,
+                          color: AppTheme.primaryBlue),
+                      title: Text('Edit'),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero)),
               const PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
