@@ -146,10 +146,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
-  int get _presentCount =>
-      _attendanceMap.values.where((v) => v == 'present').length;
-  int get _absentCount =>
-      _attendanceMap.values.where((v) => v == 'absent').length;
+  int get _presentCount => _attendanceMap.values
+      .where((v) => v.toLowerCase() == 'present' || v.toLowerCase() == 'p')
+      .length;
+  int get _absentCount => _attendanceMap.values
+      .where((v) => v.toLowerCase() == 'absent' || v.toLowerCase() == 'a')
+      .length;
 
   @override
   Widget build(BuildContext context) {
@@ -342,8 +344,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (ctx, i) {
                     final s = _students[i];
-                    final status = _attendanceMap[s.studentId] ?? 'present';
-                    final isPresent = status == 'present';
+                    final status = (_attendanceMap[s.studentId] ?? 'present')
+                        .toLowerCase();
+                    final isPresent = status == 'present' || status == 'p';
                     return ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 0, vertical: 4),
@@ -436,24 +439,31 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: ElevatedButton.icon(
-                onPressed: (_submitting || _students.isEmpty)
-                    ? null
-                    : _submitAttendance,
-                icon: _submitting
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.check_rounded),
-                label: Text(_todayAttendance != null
-                    ? 'Update Attendance'
-                    : 'Submit Attendance'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.paidGreen,
-                  minimumSize: const Size.fromHeight(52),
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: (_submitting || _students.isEmpty)
+                        ? null
+                        : _submitAttendance,
+                    icon: _submitting
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : const Icon(Icons.check_rounded),
+                    label: Text(_todayAttendance != null
+                        ? 'Update Attendance'
+                        : 'Submit Attendance'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.paidGreen,
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

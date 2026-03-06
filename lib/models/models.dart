@@ -257,7 +257,7 @@ class AttendanceRecord {
       AttendanceRecord(
         studentId: json['student_id'],
         studentName: json['student_name'],
-        status: json['status'],
+        status: json['status']?.toString().toLowerCase() ?? 'absent',
       );
 
   Map<String, dynamic> toJson() => {'student_id': studentId, 'status': status};

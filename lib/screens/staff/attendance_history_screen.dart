@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../theme/app_theme.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AttendanceHistoryScreen extends StatefulWidget {
   final String classId;
@@ -83,48 +82,6 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     }
   }
 
-  Future<void> _shareViaWhatsApp() async {
-    final dateStr = DateFormat('dd MMM yyyy').format(_selectedDate);
-    final buffer = StringBuffer();
-    buffer.writeln('📅 *Attendance Report - $dateStr*');
-    buffer.writeln('--------------------------------');
-    buffer.writeln('✅ Present: $_totalPresent');
-    buffer.writeln('❌ Absent: $_totalAbsent');
-    buffer.writeln('--------------------------------');
-
-    final absents =
-        _attendanceRecords.where((r) => r['status'] == 'A').toList();
-    if (absents.isNotEmpty) {
-      buffer.writeln('\n*Absent Students:*');
-      for (var r in absents) {
-        buffer.writeln('• ${r['student_name']}');
-      }
-    } else {
-      buffer.writeln('\n*All students were present!* 🎉');
-    }
-
-    final message = Uri.encodeComponent(buffer.toString());
-    final url = Uri.parse('https://wa.me/?text=$message');
-
-    try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not launch WhatsApp')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error sharing: $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (widget.classId.isEmpty) {
@@ -156,21 +113,11 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                 style: GoogleFonts.inter(
                     fontSize: 18, fontWeight: FontWeight.w600),
               ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.calendar_month_rounded,
-                        color: AppTheme.staffPurple),
-                    onPressed: () => _selectDate(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.share_rounded, color: Colors.green),
-                    tooltip: 'Share via WhatsApp',
-                    onPressed:
-                        _attendanceRecords.isEmpty ? null : _shareViaWhatsApp,
-                  ),
-                ],
-              )
+              IconButton(
+                icon: const Icon(Icons.calendar_month_rounded,
+                    color: AppTheme.staffPurple),
+                onPressed: () => _selectDate(context),
+              ),
             ],
           ),
         ),
@@ -182,22 +129,21 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               : _error != null
                   ? Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.error_outline_rounded,
-                                size: 48, color: AppTheme.unpaidRed),
-                            const SizedBox(height: 16),
-                            Text(_error!, textAlign: TextAlign.center),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _fetchAttendanceHistory,
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      ),
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.error_outline_rounded,
+                                  size: 48, color: AppTheme.unpaidRed),
+                              const SizedBox(height: 16),
+                              Text(_error!, textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _fetchAttendanceHistory,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          )),
                     )
                   : _attendanceRecords.isEmpty
                       ? Center(
@@ -212,10 +158,12 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                           itemCount: _attendanceRecords.length,
                           itemBuilder: (context, index) {
                             final record = _attendanceRecords[index];
-                            final status = record['status'];
+                            final status =
+                                record['status']?.toString().toLowerCase();
                             final studentName =
                                 record['student_name'] ?? 'Unknown Student';
-                            final isPresent = status == 'P';
+                            final isPresent =
+                                status == 'present' || status == 'p';
 
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
