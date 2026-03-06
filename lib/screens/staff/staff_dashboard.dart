@@ -72,7 +72,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
                 ? _NoClassTabMessage()
                 : AttendanceHistoryScreen(classId: classId),
           ),
-          SafeArea(child: StaffSettingsScreen(classId: classId)),
+          SafeArea(
+              child: StaffSettingsScreen(
+                  classId: classId, onRefresh: _loadClassId)),
         ],
       ),
       bottomNavigationBar: Container(
@@ -224,6 +226,73 @@ class _StaffHomeViewState extends State<_StaffHomeView> {
     }
   }
 
+  Future<void> _editClass(String newName) async {
+    if (newName.trim().isEmpty) return;
+    setState(() => _creating = true); // Re-use _creating for loading state
+    try {
+      await ApiClient.put('/classes/', {'name': newName.trim()});
+      await _fetchMyClass();
+      widget.onClassCreated();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Class renamed to "$newName"!'),
+            backgroundColor: AppTheme.paidGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: AppTheme.unpaidRed,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _creating = false);
+    }
+  }
+
+  void _showEditClassDialog() {
+    final ctrl = TextEditingController(text: _myClass?.name);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Edit Class Name'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Class Name',
+            hintText: 'e.g. Nursery A, Class 5B…',
+            prefixIcon: Icon(Icons.class_rounded),
+          ),
+          onSubmitted: (v) {
+            Navigator.pop(ctx);
+            _editClass(v);
+          },
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _editClass(ctrl.text);
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showCreateClassDialog() {
     final ctrl = TextEditingController();
     showDialog(
@@ -332,12 +401,26 @@ class _StaffHomeViewState extends State<_StaffHomeView> {
                                           style: GoogleFonts.inter(
                                               color: Colors.white70,
                                               fontSize: 13)),
-                                      Text(
-                                        _myClass?.name ?? 'My Class',
-                                        style: GoogleFonts.inter(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w700),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            _myClass?.name ?? 'My Class',
+                                            style: GoogleFonts.inter(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w700),
+                                          ),
+                                          IconButton(
+                                            onPressed: _showEditClassDialog,
+                                            icon: const Icon(Icons.edit_rounded,
+                                                size: 16,
+                                                color: Colors.white70),
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
