@@ -146,7 +146,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildMarkAttendanceTab();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('${widget.className} - Attendance'),
+        elevation: 0,
+      ),
+      body: _buildMarkAttendanceTab(),
+    );
   }
 
   Widget _buildMarkAttendanceTab() {

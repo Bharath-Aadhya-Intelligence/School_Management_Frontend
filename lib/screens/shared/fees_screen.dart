@@ -115,127 +115,126 @@ class _FeesScreenState extends State<FeesScreen> {
     int totalInstallments = _fees.length * 4;
     int paidInstallments = _fees.fold(0, (sum, f) => sum + f.paidCount);
 
-    return Column(
-      children: [
-        // Action Bar for integrated view
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Text('Student Fees',
-                  style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w700, fontSize: 16)),
-              const Spacer(),
-              IconButton(
-                  icon: const Icon(Icons.picture_as_pdf_rounded),
-                  tooltip: 'Export PDF',
-                  onPressed: _downloadPdf),
-              IconButton(
-                  icon: const Icon(Icons.table_chart_rounded),
-                  tooltip: 'Export Excel',
-                  onPressed: _downloadExcel),
-              IconButton(
-                  icon: const Icon(Icons.refresh_rounded),
-                  onPressed: _fetchFees),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('${widget.className} - Fees'),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_rounded),
+            tooltip: 'Export PDF',
+            onPressed: _downloadPdf,
           ),
-        ),
-        Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF059669), Color(0xFF047857)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+          IconButton(
+            icon: const Icon(Icons.table_chart_rounded),
+            tooltip: 'Export Excel',
+            onPressed: _downloadExcel,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _fetchFees,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF059669), Color(0xFF047857)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
             ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                  child: _StatItem(
-                      label: 'Students',
-                      value: '${_fees.length}',
-                      icon: Icons.people_rounded)),
-              Container(width: 1, height: 40, color: Colors.white24),
-              Expanded(
-                  child: _StatItem(
-                      label: 'Paid',
-                      value: '$paidInstallments',
-                      icon: Icons.check_circle_rounded)),
-              Container(width: 1, height: 40, color: Colors.white24),
-              Expanded(
-                  child: _StatItem(
-                      label: 'Pending',
-                      value: '${totalInstallments - paidInstallments}',
-                      icon: Icons.pending_rounded)),
-            ],
-          ),
-        ),
-        if (_fees.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ElevatedButton.icon(
-              onPressed: _initFees,
-              icon: const Icon(Icons.add_circle_outline_rounded),
-              label: const Text('Initialize Fee Records'),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.adminGreen,
-                  minimumSize: const Size.fromHeight(48),
-                  foregroundColor: Colors.white),
+            child: Row(
+              children: [
+                Expanded(
+                    child: _StatItem(
+                        label: 'Students',
+                        value: '${_fees.length}',
+                        icon: Icons.people_rounded)),
+                Container(width: 1, height: 40, color: Colors.white24),
+                Expanded(
+                    child: _StatItem(
+                        label: 'Paid',
+                        value: '$paidInstallments',
+                        icon: Icons.check_circle_rounded)),
+                Container(width: 1, height: 40, color: Colors.white24),
+                Expanded(
+                    child: _StatItem(
+                        label: 'Pending',
+                        value: '${totalInstallments - paidInstallments}',
+                        icon: Icons.pending_rounded)),
+              ],
             ),
           ),
-        Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _error != null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline_rounded,
-                              size: 64, color: AppTheme.unpaidRed),
-                          const SizedBox(height: 16),
-                          Text(_error!),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                              onPressed: _fetchFees,
-                              child: const Text('Retry')),
-                        ],
-                      ),
-                    )
-                  : _fees.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.receipt_long_outlined,
-                                  size: 64, color: AppTheme.textSecondary),
-                              const SizedBox(height: 16),
-                              const Text('No Fee Records'),
-                              const SizedBox(height: 8),
-                              const Text(
-                                  'Click Initialize to create fee records'),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                  onPressed: _initFees,
-                                  child: const Text('Initialize Fees')),
-                            ],
-                          ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                          itemCount: _fees.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 8),
-                          itemBuilder: (ctx, i) => _FeeCard(
-                              fee: _fees[i],
-                              onToggle: _toggleFee,
-                              isToggling: _toggling),
+          if (_fees.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ElevatedButton.icon(
+                onPressed: _initFees,
+                icon: const Icon(Icons.add_circle_outline_rounded),
+                label: const Text('Initialize Fee Records'),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.adminGreen,
+                    minimumSize: const Size.fromHeight(48),
+                    foregroundColor: Colors.white),
+              ),
+            ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline_rounded,
+                                size: 64, color: AppTheme.unpaidRed),
+                            const SizedBox(height: 16),
+                            Text(_error!),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                                onPressed: _fetchFees,
+                                child: const Text('Retry')),
+                          ],
                         ),
-        ),
-      ],
+                      )
+                    : _fees.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.receipt_long_outlined,
+                                    size: 64, color: AppTheme.textSecondary),
+                                const SizedBox(height: 16),
+                                const Text('No Fee Records'),
+                                const SizedBox(height: 8),
+                                const Text(
+                                    'Click Initialize to create fee records'),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                    onPressed: _initFees,
+                                    child: const Text('Initialize Fees')),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                            itemCount: _fees.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (ctx, i) => _FeeCard(
+                                fee: _fees[i],
+                                onToggle: _toggleFee,
+                                isToggling: _toggling),
+                          ),
+          ),
+        ],
+      ),
     );
   }
 }

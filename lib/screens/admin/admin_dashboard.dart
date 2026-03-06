@@ -232,6 +232,7 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'admin_add_class_fab',
         onPressed: _showAddClassDialog,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Class'),

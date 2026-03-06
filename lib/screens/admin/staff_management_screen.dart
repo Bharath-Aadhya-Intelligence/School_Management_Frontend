@@ -264,6 +264,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'admin_add_staff_fab',
         onPressed: _showAddDialog,
         icon: const Icon(Icons.person_add_rounded),
         label: const Text('Add Staff'),

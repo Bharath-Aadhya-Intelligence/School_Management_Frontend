@@ -304,85 +304,83 @@ class _StudentsScreenState extends State<StudentsScreen> {
   Widget build(BuildContext context) {
     final filtered = _filtered;
 
-    return Stack(
-      children: [
-        Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: TextField(
-                onChanged: (v) => setState(() => _searchQuery = v),
-                decoration: const InputDecoration(
-                  hintText: 'Search by name, roll no, parent...',
-                  prefixIcon: Icon(Icons.search_rounded),
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.className),
+        elevation: 0,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'add_student_fab',
+        onPressed: _showAddStudentDialog,
+        icon: const Icon(Icons.person_add_rounded),
+        label: const Text('Add Student'),
+        backgroundColor: AppTheme.primaryBlue,
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: TextField(
+              onChanged: (v) => setState(() => _searchQuery = v),
+              decoration: const InputDecoration(
+                hintText: 'Search by name, roll no, parent...',
+                prefixIcon: Icon(Icons.search_rounded),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(children: [
-                Text(
-                  '${filtered.length} student${filtered.length != 1 ? 's' : ''}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ]),
-            ),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
-                      ? Center(
-                          child:
-                              Column(mainAxisSize: MainAxisSize.min, children: [
-                          const Icon(Icons.error_outline_rounded,
-                              size: 64, color: AppTheme.unpaidRed),
-                          const SizedBox(height: 16),
-                          Text(_error!),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                              onPressed: _fetchStudents,
-                              child: const Text('Retry')),
-                        ]))
-                      : filtered.isEmpty
-                          ? EmptyState(
-                              icon: Icons.people_outline_rounded,
-                              title: _searchQuery.isEmpty
-                                  ? 'No Students'
-                                  : 'No Results',
-                              subtitle: _searchQuery.isEmpty
-                                  ? 'Add students using the button below'
-                                  : 'Try a different search term',
-                            )
-                          : ListView.separated(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                              itemCount: filtered.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 8),
-                              itemBuilder: (ctx, i) {
-                                final s = filtered[i];
-                                return _StudentCard(
-                                  student: s,
-                                  onEdit: () => _showEditDialog(s),
-                                  onDelete: () => _deleteStudent(s),
-                                );
-                              },
-                            ),
-            ),
-          ],
-        ),
-        Positioned(
-          bottom: 16,
-          right: 16,
-          child: FloatingActionButton.extended(
-            onPressed: _showAddStudentDialog,
-            icon: const Icon(Icons.person_add_rounded),
-            label: const Text('Add Student'),
-            backgroundColor: AppTheme.primaryBlue,
-            foregroundColor: Colors.white,
           ),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(children: [
+              Text(
+                '${filtered.length} student${filtered.length != 1 ? 's' : ''}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ]),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.error_outline_rounded,
+                            size: 64, color: AppTheme.unpaidRed),
+                        const SizedBox(height: 16),
+                        Text(_error!),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                            onPressed: _fetchStudents,
+                            child: const Text('Retry')),
+                      ]))
+                    : filtered.isEmpty
+                        ? EmptyState(
+                            icon: Icons.people_outline_rounded,
+                            title: _searchQuery.isEmpty
+                                ? 'No Students'
+                                : 'No Results',
+                            subtitle: _searchQuery.isEmpty
+                                ? 'Add students using the button below'
+                                : 'Try a different search term',
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                            itemCount: filtered.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (ctx, i) {
+                              final s = filtered[i];
+                              return _StudentCard(
+                                student: s,
+                                onEdit: () => _showEditDialog(s),
+                                onDelete: () => _deleteStudent(s),
+                              );
+                            },
+                          ),
+          ),
+        ],
+      ),
     );
   }
 }
