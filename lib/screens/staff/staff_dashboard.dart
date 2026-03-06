@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/stat_card.dart';
-import '../shared/attendance_screen.dart';
-import 'attendance_history_screen.dart';
+import 'fees_module_screen.dart';
+import 'attendance_module_screen.dart';
 import 'staff_settings_screen.dart';
 
 class StaffDashboard extends StatefulWidget {
@@ -61,16 +60,18 @@ class _StaffDashboardState extends State<StaffDashboard> {
           _StaffHomeView(
             myClass: _myClass,
             onClassCreated: _loadClassId,
+            onActionTap: (index) => setState(() => _currentIndex = index),
           ),
           SafeArea(
             child: classId.isEmpty
                 ? _NoClassTabMessage()
-                : AttendanceScreen(classId: classId, className: className),
+                : AttendanceModuleScreen(
+                    classId: classId, className: className),
           ),
           SafeArea(
             child: classId.isEmpty
                 ? _NoClassTabMessage()
-                : AttendanceHistoryScreen(classId: classId),
+                : FeesModuleScreen(classId: classId, className: className),
           ),
           SafeArea(
               child: StaffSettingsScreen(
@@ -109,9 +110,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
               label: 'Attendance',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.history_outlined),
-              activeIcon: Icon(Icons.history_rounded),
-              label: 'History',
+              icon: Icon(Icons.receipt_long_outlined),
+              activeIcon: Icon(Icons.receipt_long_rounded),
+              label: 'Fees',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined),
@@ -140,8 +141,13 @@ class _NoClassTabMessage extends StatelessWidget {
 class _StaffHomeView extends StatefulWidget {
   final ClassModel? myClass;
   final VoidCallback onClassCreated;
+  final Function(int) onActionTap;
 
-  const _StaffHomeView({this.myClass, required this.onClassCreated});
+  const _StaffHomeView({
+    this.myClass,
+    required this.onClassCreated,
+    required this.onActionTap,
+  });
 
   @override
   State<_StaffHomeView> createState() => _StaffHomeViewState();
@@ -487,29 +493,26 @@ class _StaffHomeViewState extends State<_StaffHomeView> {
                                     title: 'Students',
                                     icon: Icons.people_rounded,
                                     color: AppTheme.primaryBlue,
-                                    onTap: () => context.push(
-                                        '/staff/students?classId=${_myClass!.classId}&name=${Uri.encodeComponent(_myClass!.name)}'),
+                                    onTap: () => widget.onActionTap(
+                                        1), // Index for Attendance Module (which has Students tab)
                                   ),
                                   _QuickActionCard(
                                     title: 'Attendance',
                                     icon: Icons.fact_check_rounded,
                                     color: AppTheme.adminGreen,
-                                    onTap: () => context.push(
-                                        '/staff/attendance?classId=${_myClass!.classId}&name=${Uri.encodeComponent(_myClass!.name)}'),
+                                    onTap: () => widget.onActionTap(1),
                                   ),
                                   _QuickActionCard(
                                     title: 'Fees',
                                     icon: Icons.receipt_long_rounded,
                                     color: AppTheme.warningAmber,
-                                    onTap: () => context.push(
-                                        '/staff/fees?classId=${_myClass!.classId}&name=${Uri.encodeComponent(_myClass!.name)}'),
+                                    onTap: () => widget.onActionTap(2),
                                   ),
                                   _QuickActionCard(
                                     title: 'Van Fees',
                                     icon: Icons.directions_bus_rounded,
                                     color: AppTheme.staffPurple,
-                                    onTap: () => context.push(
-                                        '/staff/van-fees?classId=${_myClass!.classId}&name=${Uri.encodeComponent(_myClass!.name)}'),
+                                    onTap: () => widget.onActionTap(2),
                                   ),
                                 ],
                               ),

@@ -115,67 +115,68 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.className,
-                style: Theme.of(context).textTheme.titleLarge),
-            Text('Van Fee Management',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontSize: 12)),
-          ],
-        ),
-        actions: [
-          IconButton(
-              icon: const Icon(Icons.picture_as_pdf_rounded),
-              tooltip: 'Export PDF',
-              onPressed: _downloadPdf),
-          IconButton(
-              icon: const Icon(Icons.table_chart_rounded),
-              tooltip: 'Export Excel',
-              onPressed: _downloadExcel),
-          GestureDetector(
-            onTap: _showYearSelector,
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text('$_selectedYear',
-                    style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryBlue)),
-                const Icon(Icons.keyboard_arrow_down_rounded,
-                    size: 16, color: AppTheme.primaryBlue),
-              ]),
-            ),
+    return Column(
+      children: [
+        // Action Bar for integrated view
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Text('Van Fees',
+                  style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700, fontSize: 16)),
+              const Spacer(),
+              IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  tooltip: 'Export PDF',
+                  onPressed: _downloadPdf),
+              IconButton(
+                  icon: const Icon(Icons.table_chart_rounded),
+                  tooltip: 'Export Excel',
+                  onPressed: _downloadExcel),
+              GestureDetector(
+                onTap: _showYearSelector,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Text('$_selectedYear',
+                        style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.primaryBlue)),
+                    const Icon(Icons.keyboard_arrow_down_rounded,
+                        size: 16, color: AppTheme.primaryBlue),
+                  ]),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? _buildError()
-              : _vanFees.isEmpty
-                  ? const Center(child: Text('No Van Students Enrolled'))
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _vanFees.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (ctx, i) => _VanFeeCard(
-                        vanFee: _vanFees[i],
-                        selectedYear: _selectedYear,
-                        monthNames: _monthNames,
-                        onToggle: _toggleVanFee,
-                        isToggling: _toggling,
-                      ),
-                    ),
+        ),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? _buildError()
+                  : _vanFees.isEmpty
+                      ? const Center(child: Text('No Van Students Enrolled'))
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _vanFees.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (ctx, i) => _VanFeeCard(
+                            vanFee: _vanFees[i],
+                            selectedYear: _selectedYear,
+                            monthNames: _monthNames,
+                            onToggle: _toggleVanFee,
+                            isToggling: _toggling,
+                          ),
+                        ),
+        ),
+      ],
     );
   }
 

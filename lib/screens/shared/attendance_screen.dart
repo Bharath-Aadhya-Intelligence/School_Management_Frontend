@@ -16,9 +16,7 @@ class AttendanceScreen extends StatefulWidget {
   State<AttendanceScreen> createState() => _AttendanceScreenState();
 }
 
-class _AttendanceScreenState extends State<AttendanceScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _AttendanceScreenState extends State<AttendanceScreen> {
   List<AttendanceSummary> _summaries = [];
   List<StudentModel> _students = [];
   AttendanceHistory? _todayAttendance;
@@ -32,14 +30,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _loadData();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -138,7 +129,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             backgroundColor: AppTheme.paidGreen,
           ),
         );
-        _tabController.animateTo(1);
       }
     } on ApiException catch (e) {
       if (mounted)
@@ -156,36 +146,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.className,
-                style: Theme.of(context).textTheme.titleLarge),
-            Text('Attendance',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontSize: 12)),
-          ],
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.edit_outlined), text: 'Mark Attendance'),
-            Tab(icon: Icon(Icons.history_rounded), text: 'History'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildMarkAttendanceTab(),
-          _buildHistoryTab(),
-        ],
-      ),
-    );
+    return _buildMarkAttendanceTab();
   }
 
   Widget _buildMarkAttendanceTab() {
@@ -454,82 +415,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHistoryTab() {
-    if (_loadingSummary)
-      return const Center(child: CircularProgressIndicator());
-    if (_summaries.isEmpty)
-      return const EmptyState(
-          icon: Icons.history_outlined, title: 'No Attendance History');
-
-    final sorted = [..._summaries]..sort((a, b) => b.date.compareTo(a.date));
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: sorted.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (ctx, i) {
-        final s = sorted[i];
-        final total = s.totalPresent + s.totalAbsent;
-        final pct =
-            total > 0 ? (s.totalPresent / total * 100).toStringAsFixed(0) : '0';
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardTheme.color,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.darkBorder
-                    : AppTheme.borderLight),
-          ),
-          child: Row(children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.calendar_today_rounded,
-                  color: AppTheme.primaryBlue, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(s.date,
-                        style: GoogleFonts.inter(
-                            fontSize: 14, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    Text('${s.totalPresent} present • ${s.totalAbsent} absent',
-                        style: GoogleFonts.inter(
-                            fontSize: 12, color: AppTheme.textSecondary)),
-                  ]),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: int.parse(pct) >= 70
-                    ? AppTheme.paidGreen.withOpacity(0.12)
-                    : AppTheme.unpaidRed.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$pct%',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: int.parse(pct) >= 70
-                      ? AppTheme.paidGreen
-                      : AppTheme.unpaidRed,
-                ),
-              ),
-            ),
-          ]),
-        );
-      },
     );
   }
 }

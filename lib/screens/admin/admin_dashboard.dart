@@ -8,6 +8,8 @@ import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/stat_card.dart';
 import 'admin_settings_screen.dart';
+import 'staff_management_screen.dart';
+import 'salary_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -24,9 +26,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          _AdminHomeView(),
-          SafeArea(child: AdminSettingsScreen()),
+        children: [
+          _AdminHomeView(
+            onActionTap: (index) => setState(() => _currentIndex = index),
+          ),
+          const SafeArea(child: StaffManagementScreen()),
+          const SafeArea(child: SalaryScreen()),
+          const SafeArea(child: AdminSettingsScreen()),
         ],
       ),
       bottomNavigationBar: Container(
@@ -55,6 +61,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
               label: 'Home',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.people_alt_outlined),
+              activeIcon: Icon(Icons.people_alt_rounded),
+              label: 'Staff',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.payments_outlined),
+              activeIcon: Icon(Icons.payments_rounded),
+              label: 'Salary',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined),
               activeIcon: Icon(Icons.settings_rounded),
               label: 'Settings',
@@ -67,7 +83,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
 }
 
 class _AdminHomeView extends StatefulWidget {
-  const _AdminHomeView();
+  final Function(int) onActionTap;
+  const _AdminHomeView({required this.onActionTap});
 
   @override
   State<_AdminHomeView> createState() => _AdminHomeViewState();
@@ -205,12 +222,12 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
           IconButton(
             icon: const Icon(Icons.people_alt_outlined),
             tooltip: 'Staff Management',
-            onPressed: () => context.push('/admin/staff'),
+            onPressed: () => widget.onActionTap(1),
           ),
           IconButton(
             icon: const Icon(Icons.payments_outlined),
             tooltip: 'Salary',
-            onPressed: () => context.push('/admin/salary'),
+            onPressed: () => widget.onActionTap(2),
           ),
         ],
       ),
@@ -320,7 +337,7 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
                                       value: 'Staff & Salary',
                                       icon: Icons.people_rounded,
                                       color: AppTheme.adminGreen,
-                                      onTap: () => context.push('/admin/staff'),
+                                      onTap: () => widget.onActionTap(1),
                                     ),
                                   ),
                                 ],
