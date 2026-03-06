@@ -48,6 +48,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
     });
     try {
       final data = await ApiClient.get('/salary/');
+      if (!mounted) return;
       setState(() {
         _salaries =
             (data as List).map((e) => StaffSalaryModel.fromJson(e)).toList();
@@ -66,6 +67,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
     setState(() => _toggling = true);
     try {
       await ApiClient.patch('/salary/$staffId/$month/$_selectedYear');
+      if (!mounted) return;
       await _fetchSalaries();
     } on ApiException catch (e) {
       if (mounted)
@@ -79,6 +81,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
   Future<void> _initSalary(String staffId) async {
     try {
       await ApiClient.post('/salary/init/$staffId/$_selectedYear', {});
+      if (!mounted) return;
       _fetchSalaries();
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

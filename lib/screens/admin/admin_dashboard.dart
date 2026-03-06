@@ -108,6 +108,7 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
     });
     try {
       final data = await ApiClient.get('/classes/');
+      if (!mounted) return;
       setState(() {
         _classes = (data as List).map((e) => ClassModel.fromJson(e)).toList();
         _isLoading = false;
@@ -230,14 +231,6 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
             onPressed: () => widget.onActionTap(2),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'admin_add_class_fab',
-        onPressed: _showAddClassDialog,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Class'),
-        backgroundColor: AppTheme.primaryBlue,
-        foregroundColor: Colors.white,
       ),
       body: RefreshIndicator(
         onRefresh: _fetchClasses,

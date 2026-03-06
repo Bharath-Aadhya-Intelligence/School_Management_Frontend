@@ -32,6 +32,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
     });
     try {
       final data = await ApiClient.get('/staff/');
+      if (!mounted) return;
       setState(() {
         _staff = (data as List).map((e) => StaffModel.fromJson(e)).toList();
         _isLoading = false;

@@ -28,6 +28,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
   Future<void> _fetchClasses() async {
     try {
       final data = await ApiClient.get('/classes/');
+      if (!mounted) return;
       setState(() {
         _classes = (data as List).map((e) => ClassModel.fromJson(e)).toList();
         if (_classes.isNotEmpty) _selectedClass = _classes.first;

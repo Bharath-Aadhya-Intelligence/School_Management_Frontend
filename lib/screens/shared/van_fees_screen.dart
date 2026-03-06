@@ -50,6 +50,7 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
     });
     try {
       final data = await ApiClient.get('/van-fees/${widget.classId}');
+      if (!mounted) return;
       setState(() {
         _vanFees =
             (data as List).map((e) => StudentVanFeeModel.fromJson(e)).toList();
@@ -70,6 +71,7 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
     setState(() => _toggling = true);
     try {
       await ApiClient.patch('/van-fees/$studentId/$month?year=$_selectedYear');
+      if (!mounted) return;
       await _fetchVanFees();
     } on ApiException catch (e) {
       if (mounted) {

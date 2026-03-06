@@ -33,6 +33,7 @@ class _FeesScreenState extends State<FeesScreen> {
     });
     try {
       final data = await ApiClient.get('/fees/${widget.classId}');
+      if (!mounted) return;
       setState(() {
         _fees = (data as List).map((e) => StudentFeeModel.fromJson(e)).toList();
         _isLoading = false;
@@ -50,6 +51,7 @@ class _FeesScreenState extends State<FeesScreen> {
   Future<void> _initFees() async {
     try {
       await ApiClient.post('/fees/init/${widget.classId}', {});
+      if (!mounted) return;
       _fetchFees();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -69,6 +71,7 @@ class _FeesScreenState extends State<FeesScreen> {
     setState(() => _toggling = true);
     try {
       await ApiClient.patch('/fees/$studentId/$installmentNo');
+      if (!mounted) return;
       await _fetchFees();
     } on ApiException catch (e) {
       if (mounted) {

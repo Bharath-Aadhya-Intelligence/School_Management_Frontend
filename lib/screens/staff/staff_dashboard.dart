@@ -31,6 +31,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
   Future<void> _loadClassId() async {
     try {
       final classData = await ApiClient.get('/classes/my');
+      if (!mounted) return;
       setState(() {
         _myClass = ClassModel.fromJson(classData);
         _isLoadingClass = false;

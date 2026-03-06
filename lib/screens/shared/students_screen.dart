@@ -34,6 +34,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     });
     try {
       final data = await ApiClient.get('/students/${widget.classId}');
+      if (!mounted) return;
       setState(() {
         _students =
             (data as List).map((e) => StudentModel.fromJson(e)).toList();
@@ -242,6 +243,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           'contact': contactCtrl.text.trim(),
                           'van_enrolled': vanEnrolled,
                         });
+                        if (!mounted) return;
                         _fetchStudents();
                         if (mounted)
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -287,6 +289,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     if (confirm == true) {
       try {
         await ApiClient.delete('/students/${student.studentId}');
+        if (!mounted) return;
         _fetchStudents();
         if (mounted)
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

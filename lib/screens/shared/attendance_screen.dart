@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_drawer.dart';
+import '../../providers/auth_provider.dart';
 
 class AttendanceScreen extends StatefulWidget {
   final String classId;
@@ -41,6 +43,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Future<void> _fetchStudents() async {
     try {
       final data = await ApiClient.get('/students/${widget.classId}');
+      if (!mounted) return;
       final students = (data as List)
           .map((e) => StudentModel.fromJson(e))
           .where((s) => s.isActive)
@@ -66,6 +69,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Future<void> _fetchSummary() async {
     try {
       final data = await ApiClient.get('/attendance/${widget.classId}');
+      if (!mounted) return;
       setState(() {
         _summaries =
             (data as List).map((e) => AttendanceSummary.fromJson(e)).toList();
@@ -84,6 +88,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     try {
       final data =
           await ApiClient.get('/attendance/${widget.classId}/$dateStr');
+      if (!mounted) return;
       final history = AttendanceHistory.fromJson(data);
       setState(() {
         _todayAttendance = history;
@@ -120,6 +125,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         await ApiClient.post('/attendance/', body);
       }
 
+      if (!mounted) return;
       await _loadData();
 
       if (mounted) {
@@ -131,9 +137,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         );
       }
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -156,6 +163,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Widget _buildMarkAttendanceTab() {
+    final isAdmin = Provider.of<AuthProvider>(context, listen: false).isAdmin;
+
     if (_loadingStudents) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -259,20 +268,41 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   ]),
                 ),
               ]),
+              if (_todayAttendance?.markedBy != null) ...[
+                const SizedBox(height: 12),
+                const Divider(color: Colors.white24, height: 1),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.person_pin_rounded,
+                        color: Colors.white70, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Marked By: ${_todayAttendance!.markedBy}',
+                      style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
 
-        // Mark All Buttons
-        if (_students.isNotEmpty)
+        // Mark All Buttons - Hide for Admin
+        if (_students.isNotEmpty && !isAdmin)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(children: [
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => setState(() {
-                    for (final s in _students)
+                    for (final s in _students) {
                       _attendanceMap[s.studentId] = 'present';
+                    }
                   }),
                   icon:
                       const Icon(Icons.check_circle_outline_rounded, size: 18),
@@ -286,8 +316,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => setState(() {
-                    for (final s in _students)
+                    for (final s in _students) {
                       _attendanceMap[s.studentId] = 'absent';
+                    }
                   }),
                   icon: const Icon(Icons.cancel_outlined, size: 18),
                   label: const Text('All Absent'),
@@ -306,7 +337,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               ? const EmptyState(
                   icon: Icons.people_outline_rounded, title: 'No Students')
               : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, isAdmin ? 16 : 100),
                   itemCount: _students.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (ctx, i) {
@@ -339,8 +370,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               fontSize: 12, color: AppTheme.textSecondary)),
                       trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                         GestureDetector(
-                          onTap: () => setState(
-                              () => _attendanceMap[s.studentId] = 'present'),
+                          onTap: isAdmin
+                              ? null
+                              : () => setState(() =>
+                                  _attendanceMap[s.studentId] = 'present'),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 6),
@@ -365,8 +398,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => setState(
-                              () => _attendanceMap[s.studentId] = 'absent'),
+                          onTap: isAdmin
+                              ? null
+                              : () => setState(
+                                  () => _attendanceMap[s.studentId] = 'absent'),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 6),
@@ -396,30 +431,32 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
         ),
 
-        // Submit Button
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: ElevatedButton.icon(
-              onPressed:
-                  (_submitting || _students.isEmpty) ? null : _submitAttendance,
-              icon: _submitting
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2))
-                  : const Icon(Icons.check_rounded),
-              label: Text(_todayAttendance != null
-                  ? 'Update Attendance'
-                  : 'Submit Attendance'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.paidGreen,
-                minimumSize: const Size.fromHeight(52),
+        // Submit Button - Hide for Admin
+        if (!isAdmin)
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: ElevatedButton.icon(
+                onPressed: (_submitting || _students.isEmpty)
+                    ? null
+                    : _submitAttendance,
+                icon: _submitting
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.check_rounded),
+                label: Text(_todayAttendance != null
+                    ? 'Update Attendance'
+                    : 'Submit Attendance'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.paidGreen,
+                  minimumSize: const Size.fromHeight(52),
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

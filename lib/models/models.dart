@@ -268,6 +268,7 @@ class AttendanceHistory {
   final String date;
   final int totalPresent;
   final int totalAbsent;
+  final String? markedBy;
   final List<AttendanceRecord> records;
 
   AttendanceHistory({
@@ -275,6 +276,7 @@ class AttendanceHistory {
     required this.date,
     required this.totalPresent,
     required this.totalAbsent,
+    this.markedBy,
     required this.records,
   });
 
@@ -284,6 +286,7 @@ class AttendanceHistory {
         date: json['date'],
         totalPresent: json['total_present'],
         totalAbsent: json['total_absent'],
+        markedBy: json['marked_by'],
         records: (json['records'] as List)
             .map((e) => AttendanceRecord.fromJson(e))
             .toList(),
