@@ -11,8 +11,11 @@ import '../../providers/auth_provider.dart';
 class AttendanceScreen extends StatefulWidget {
   final String classId;
   final String className;
-  const AttendanceScreen(
-      {super.key, required this.classId, required this.className});
+  const AttendanceScreen({
+    super.key,
+    required this.classId,
+    required this.className,
+  });
 
   @override
   State<AttendanceScreen> createState() => _AttendanceScreenState();
@@ -28,6 +31,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   String? _error;
   DateTime _selectedDate = DateTime.now();
   Map<String, String> _attendanceMap = {}; // studentId -> status
+  bool _isAscending = true;
 
   @override
   void initState() {
@@ -49,6 +53,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           .where((s) => s.isActive)
           .toList();
       setState(() {
+        // Sort students naturally by roll number
+        students.sort((a, b) {
+          final numA = int.tryParse(a.rollNo.replaceAll(RegExp(r'[^0-9]'), ''));
+          final numB = int.tryParse(b.rollNo.replaceAll(RegExp(r'[^0-9]'), ''));
+          if (numA != null && numB != null) {
+            final cmp = numA.compareTo(numB);
+            return _isAscending ? cmp : -cmp;
+          }
+          final cmp = a.rollNo.compareTo(b.rollNo);
+          return _isAscending ? cmp : -cmp;
+        });
+
         _students = students;
         _loadingStudents = false;
         // Initialize attendance map
@@ -71,8 +87,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       final data = await ApiClient.get('/attendance/${widget.classId}');
       if (!mounted) return;
       setState(() {
-        _summaries =
-            (data as List).map((e) => AttendanceSummary.fromJson(e)).toList();
+        _summaries = (data as List)
+            .map((e) => AttendanceSummary.fromJson(e))
+            .toList();
         _loadingSummary = false;
       });
     } on ApiException catch (e) {
@@ -86,8 +103,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Future<void> _fetchTodayAttendance() async {
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
     try {
-      final data =
-          await ApiClient.get('/attendance/${widget.classId}/$dateStr');
+      final data = await ApiClient.get(
+        '/attendance/${widget.classId}/$dateStr',
+      );
       if (!mounted) return;
       final history = AttendanceHistory.fromJson(data);
       setState(() {
@@ -106,10 +124,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     setState(() => _submitting = true);
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
     final records = _students
-        .map((s) => {
-              'student_id': s.studentId,
-              'status': _attendanceMap[s.studentId] ?? 'present',
-            })
+        .map(
+          (s) => {
+            'student_id': s.studentId,
+            'status': _attendanceMap[s.studentId] ?? 'present',
+          },
+        )
         .toList();
 
     try {
@@ -138,8 +158,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: AppTheme.unpaidRed,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -159,6 +183,34 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       appBar: AppBar(
         title: Text('${widget.className} - Attendance'),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isAscending ? Icons.sort_by_alpha_rounded : Icons.sort_rounded,
+            ),
+            tooltip: _isAscending ? 'Sort Ascending' : 'Sort Descending',
+            onPressed: () {
+              setState(() {
+                _isAscending = !_isAscending;
+                // Re-sort the existing list
+                _students.sort((a, b) {
+                  final numA = int.tryParse(
+                    a.rollNo.replaceAll(RegExp(r'[^0-9]'), ''),
+                  );
+                  final numB = int.tryParse(
+                    b.rollNo.replaceAll(RegExp(r'[^0-9]'), ''),
+                  );
+                  if (numA != null && numB != null) {
+                    final cmp = numA.compareTo(numB);
+                    return _isAscending ? cmp : -cmp;
+                  }
+                  final cmp = a.rollNo.compareTo(b.rollNo);
+                  return _isAscending ? cmp : -cmp;
+                });
+              });
+            },
+          ),
+        ],
       ),
       body: _buildMarkAttendanceTab(),
     );
@@ -172,12 +224,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
     if (_error != null) {
       return Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.error_outline_rounded,
-            size: 64, color: AppTheme.unpaidRed),
-        const SizedBox(height: 16),
-        Text(_error!),
-      ]));
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 64,
+              color: AppTheme.unpaidRed,
+            ),
+            const SizedBox(height: 16),
+            Text(_error!),
+          ],
+        ),
+      );
     }
 
     return Column(
@@ -188,7 +247,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-                colors: [AppTheme.primaryBlue, AppTheme.primaryBlueDark]),
+              colors: [AppTheme.primaryBlue, AppTheme.primaryBlueDark],
+            ),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -207,69 +267,107 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       _selectedDate = picked;
                       _todayAttendance = null;
                       _attendanceMap = {
-                        for (final s in _students) s.studentId: 'present'
+                        for (final s in _students) s.studentId: 'present',
                       };
                     });
                     await _fetchTodayAttendance();
                   }
                 },
-                child: Row(children: [
-                  const Icon(Icons.calendar_today_rounded,
-                      color: Colors.white, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
-                    style: GoogleFonts.inter(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
+                      style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 14,
-                        fontWeight: FontWeight.w600),
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.edit_rounded,
-                      color: Colors.white70, size: 16),
-                ]),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.edit_rounded,
+                      color: Colors.white70,
+                      size: 16,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
-              Row(children: [
-                Expanded(
-                  child: Column(children: [
-                    Text('$_presentCount',
-                        style: GoogleFonts.inter(
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          '$_presentCount',
+                          style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 24,
-                            fontWeight: FontWeight.w800)),
-                    Text('Present',
-                        style: GoogleFonts.inter(
-                            color: Colors.white70, fontSize: 12)),
-                  ]),
-                ),
-                Container(width: 1, height: 36, color: Colors.white24),
-                Expanded(
-                  child: Column(children: [
-                    Text('$_absentCount',
-                        style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          'Present',
+                          style: GoogleFonts.inter(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(width: 1, height: 36, color: Colors.white24),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          '$_absentCount',
+                          style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 24,
-                            fontWeight: FontWeight.w800)),
-                    Text('Absent',
-                        style: GoogleFonts.inter(
-                            color: Colors.white70, fontSize: 12)),
-                  ]),
-                ),
-                Container(width: 1, height: 36, color: Colors.white24),
-                Expanded(
-                  child: Column(children: [
-                    Text('${_students.length}',
-                        style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          'Absent',
+                          style: GoogleFonts.inter(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(width: 1, height: 36, color: Colors.white24),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          '${_students.length}',
+                          style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 24,
-                            fontWeight: FontWeight.w800)),
-                    Text('Total',
-                        style: GoogleFonts.inter(
-                            color: Colors.white70, fontSize: 12)),
-                  ]),
-                ),
-              ]),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          'Total',
+                          style: GoogleFonts.inter(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               if (_todayAttendance?.markedBy != null) ...[
                 const SizedBox(height: 12),
                 const Divider(color: Colors.white24, height: 1),
@@ -277,15 +375,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.person_pin_rounded,
-                        color: Colors.white70, size: 14),
+                    const Icon(
+                      Icons.person_pin_rounded,
+                      color: Colors.white70,
+                      size: 14,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'Marked By: ${_todayAttendance!.markedBy}',
                       style: GoogleFonts.inter(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500),
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -298,38 +400,44 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         if (_students.isNotEmpty && !isAdmin)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => setState(() {
-                    for (final s in _students) {
-                      _attendanceMap[s.studentId] = 'present';
-                    }
-                  }),
-                  icon:
-                      const Icon(Icons.check_circle_outline_rounded, size: 18),
-                  label: const Text('All Present'),
-                  style: OutlinedButton.styleFrom(
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => setState(() {
+                      for (final s in _students) {
+                        _attendanceMap[s.studentId] = 'present';
+                      }
+                    }),
+                    icon: const Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 18,
+                    ),
+                    label: const Text('All Present'),
+                    style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.paidGreen,
-                      side: const BorderSide(color: AppTheme.paidGreen)),
+                      side: const BorderSide(color: AppTheme.paidGreen),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => setState(() {
-                    for (final s in _students) {
-                      _attendanceMap[s.studentId] = 'absent';
-                    }
-                  }),
-                  icon: const Icon(Icons.cancel_outlined, size: 18),
-                  label: const Text('All Absent'),
-                  style: OutlinedButton.styleFrom(
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => setState(() {
+                      for (final s in _students) {
+                        _attendanceMap[s.studentId] = 'absent';
+                      }
+                    }),
+                    icon: const Icon(Icons.cancel_outlined, size: 18),
+                    label: const Text('All Absent'),
+                    style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.unpaidRed,
-                      side: const BorderSide(color: AppTheme.unpaidRed)),
+                      side: const BorderSide(color: AppTheme.unpaidRed),
+                    ),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ),
         const SizedBox(height: 8),
 
@@ -337,7 +445,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         Expanded(
           child: _students.isEmpty
               ? const EmptyState(
-                  icon: Icons.people_outline_rounded, title: 'No Students')
+                  icon: Icons.people_outline_rounded,
+                  title: 'No Students',
+                )
               : ListView.separated(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, isAdmin ? 16 : 100),
                   itemCount: _students.length,
@@ -349,7 +459,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     final isPresent = status == 'present' || status == 'p';
                     return ListTile(
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 0, vertical: 4),
+                        horizontal: 0,
+                        vertical: 4,
+                      ),
                       leading: CircleAvatar(
                         backgroundColor: isPresent
                             ? AppTheme.paidGreen.withOpacity(0.12)
@@ -365,70 +477,99 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           ),
                         ),
                       ),
-                      title: Text(s.name,
-                          style: GoogleFonts.inter(
-                              fontSize: 14, fontWeight: FontWeight.w600)),
-                      subtitle: Text(s.parentName,
-                          style: GoogleFonts.inter(
-                              fontSize: 12, color: AppTheme.textSecondary)),
-                      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                        GestureDetector(
-                          onTap: isAdmin
-                              ? null
-                              : () => setState(() =>
-                                  _attendanceMap[s.studentId] = 'present'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isPresent
-                                  ? AppTheme.paidGreen
-                                  : AppTheme.surfaceLight,
-                              borderRadius: const BorderRadius.horizontal(
-                                  left: Radius.circular(8)),
-                              border: Border.all(
+                      title: Text(
+                        s.name,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        s.parentName,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: isAdmin
+                                ? null
+                                : () => setState(
+                                    () =>
+                                        _attendanceMap[s.studentId] = 'present',
+                                  ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isPresent
+                                    ? AppTheme.paidGreen
+                                    : AppTheme.surfaceLight,
+                                borderRadius: const BorderRadius.horizontal(
+                                  left: Radius.circular(8),
+                                ),
+                                border: Border.all(
                                   color: isPresent
                                       ? AppTheme.paidGreen
-                                      : AppTheme.borderLight),
-                            ),
-                            child: Text('P',
+                                      : AppTheme.borderLight,
+                                ),
+                              ),
+                              child: Text(
+                                'P',
                                 style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: isPresent
-                                        ? Colors.white
-                                        : AppTheme.textSecondary)),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isPresent
+                                      ? Colors.white
+                                      : AppTheme.textSecondary,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: isAdmin
-                              ? null
-                              : () => setState(
-                                  () => _attendanceMap[s.studentId] = 'absent'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: !isPresent
-                                  ? AppTheme.unpaidRed
-                                  : AppTheme.surfaceLight,
-                              borderRadius: const BorderRadius.horizontal(
-                                  right: Radius.circular(8)),
-                              border: Border.all(
+                          GestureDetector(
+                            onTap: isAdmin
+                                ? null
+                                : () => setState(
+                                    () =>
+                                        _attendanceMap[s.studentId] = 'absent',
+                                  ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: !isPresent
+                                    ? AppTheme.unpaidRed
+                                    : AppTheme.surfaceLight,
+                                borderRadius: const BorderRadius.horizontal(
+                                  right: Radius.circular(8),
+                                ),
+                                border: Border.all(
                                   color: !isPresent
                                       ? AppTheme.unpaidRed
-                                      : AppTheme.borderLight),
-                            ),
-                            child: Text('A',
+                                      : AppTheme.borderLight,
+                                ),
+                              ),
+                              child: Text(
+                                'A',
                                 style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: !isPresent
-                                        ? Colors.white
-                                        : AppTheme.textSecondary)),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: !isPresent
+                                      ? Colors.white
+                                      : AppTheme.textSecondary,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ]),
+                        ],
+                      ),
                     );
                   },
                 ),
@@ -451,16 +592,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             height: 18,
                             width: 18,
                             child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Icon(Icons.check_rounded),
-                    label: Text(_todayAttendance != null
-                        ? 'Update Attendance'
-                        : 'Submit Attendance'),
+                    label: Text(
+                      _todayAttendance != null
+                          ? 'Update Attendance'
+                          : 'Submit Attendance',
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.paidGreen,
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ],
