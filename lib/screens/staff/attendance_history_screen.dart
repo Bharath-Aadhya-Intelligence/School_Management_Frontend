@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
+import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/sort_utils.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceHistoryScreen extends StatefulWidget {
@@ -16,7 +18,7 @@ class AttendanceHistoryScreen extends StatefulWidget {
 
 class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   DateTime _selectedDate = DateTime.now();
-  List<dynamic> _attendanceRecords = [];
+  List<AttendanceRecord> _attendanceRecords = [];
   bool _isLoading = false;
   String? _error;
   int _totalPresent = 0;
@@ -37,12 +39,17 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
     try {
       final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
-      final data =
-          await ApiClient.get('/attendance/${widget.classId}/$dateStr');
+      final json = await ApiClient.get('/attendance/${widget.classId}/$dateStr');
+
+      if (!mounted) return;
+
+      final history = AttendanceHistory.fromJson(json);
+
       setState(() {
-        _attendanceRecords = data['records'] as List;
-        _totalPresent = data['total_present'] ?? 0;
-        _totalAbsent = data['total_absent'] ?? 0;
+        _attendanceRecords = history.records;
+        _attendanceRecords.sort((a, b) => SortUtils.compareNatural(a.rollNo ?? '', b.rollNo ?? ''));
+        _totalPresent = history.totalPresent;
+        _totalAbsent = history.totalAbsent;
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -153,84 +160,145 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                 color: AppTheme.textSecondary),
                           ),
                         )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _attendanceRecords.length,
-                          itemBuilder: (context, index) {
-                            final record = _attendanceRecords[index];
-                            final status =
-                                record['status']?.toString().toLowerCase();
-                            final studentName =
-                                record['student_name'] ?? 'Unknown Student';
-                            final isPresent =
-                                status == 'present' || status == 'p';
-
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).cardColor,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? AppTheme.darkBorder
-                                      : AppTheme.borderLight,
-                                ),
+                  : Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          child: Row(
+                            children: [
+                              _StatChip(
+                                label: 'Present',
+                                value: '$_totalPresent',
+                                color: AppTheme.paidGreen,
                               ),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundColor: isPresent
-                                        ? AppTheme.paidGreen.withOpacity(0.2)
-                                        : AppTheme.unpaidRed.withOpacity(0.2),
-                                    child: Icon(
-                                      isPresent
-                                          ? Icons.check_rounded
-                                          : Icons.close_rounded,
-                                      color: isPresent
-                                          ? AppTheme.paidGreen
-                                          : AppTheme.unpaidRed,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Text(
-                                      studentName,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: isPresent
-                                          ? AppTheme.paidGreen.withOpacity(0.15)
-                                          : AppTheme.unpaidRed
-                                              .withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      isPresent ? 'Present' : 'Absent',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: isPresent
-                                            ? AppTheme.paidGreen
-                                            : AppTheme.unpaidRed,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              const SizedBox(width: 12),
+                              _StatChip(
+                                label: 'Absent',
+                                value: '$_totalAbsent',
+                                color: AppTheme.unpaidRed,
                               ),
-                            );
-                          },
+                            ],
+                          ),
                         ),
+                        Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _attendanceRecords.length,
+                            itemBuilder: (context, index) {
+                              final record = _attendanceRecords[index];
+                              final status = record.status;
+                              final studentName = record.studentName ?? 'Unknown Student';
+                              final rollNo = record.rollNo ?? '-';
+                              final isPresent = status == 'present' || status == 'p';
+
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? AppTheme.darkBorder
+                                        : AppTheme.borderLight,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: isPresent
+                                          ? AppTheme.paidGreen.withOpacity(0.12)
+                                          : AppTheme.unpaidRed.withOpacity(0.12),
+                                      child: Text(
+                                        rollNo.isNotEmpty ? rollNo : '?',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: isPresent
+                                              ? AppTheme.paidGreen
+                                              : AppTheme.unpaidRed,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        studentName,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: isPresent
+                                            ? AppTheme.paidGreen.withOpacity(0.15)
+                                            : AppTheme.unpaidRed
+                                                .withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        isPresent ? 'Present' : 'Absent',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: isPresent
+                                              ? AppTheme.paidGreen
+                                              : AppTheme.unpaidRed,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
         ),
       ],
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatChip(
+      {required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$value ',
+            style: GoogleFonts.inter(
+                color: color, fontWeight: FontWeight.w800, fontSize: 14),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+                color: color.withOpacity(0.8),
+                fontWeight: FontWeight.w600,
+                fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 }

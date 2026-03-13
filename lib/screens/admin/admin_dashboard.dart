@@ -111,6 +111,7 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
       if (!mounted) return;
       setState(() {
         _classes = (data as List).map((e) => ClassModel.fromJson(e)).toList();
+        _classes.sort((a, b) => a.name.compareTo(b.name));
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -123,96 +124,6 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
     }
   }
 
-  void _showAddClassDialog() {
-    final nameCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryBlue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.class_rounded,
-                  color: AppTheme.primaryBlue, size: 22),
-            ),
-            const SizedBox(width: 12),
-            const Text('Add New Class'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'The class will be assigned to the logged-in staff account.',
-              style: GoogleFonts.inter(
-                  fontSize: 13, color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameCtrl,
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                labelText: 'Class Name',
-                hintText: 'e.g. Nursery A, Class 5B...',
-                prefixIcon: Icon(Icons.drive_file_rename_outline_rounded),
-              ),
-              onSubmitted: (_) => _submitAddClass(ctx, nameCtrl),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => _submitAddClass(ctx, nameCtrl),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('Add Class'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitAddClass(
-    BuildContext dialogCtx,
-    TextEditingController nameCtrl,
-  ) async {
-    final name = nameCtrl.text.trim();
-    if (name.isEmpty) return;
-    Navigator.pop(dialogCtx);
-    try {
-      await ApiClient.post('/classes/', {'name': name});
-      _fetchClasses();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Class "$name" created successfully'),
-            backgroundColor: AppTheme.paidGreen,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: AppTheme.unpaidRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

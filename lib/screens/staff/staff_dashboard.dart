@@ -177,13 +177,10 @@ class _StaffHomeViewState extends State<_StaffHomeView> {
     try {
       final classData = await ApiClient.get('/classes/my');
       final cls = ClassModel.fromJson(classData);
-      final students = await ApiClient.get('/students/${cls.classId}');
-      final activeStudents =
-          (students as List).where((s) => s['is_active'] == true).length;
       if (mounted) {
         setState(() {
           _myClass = cls;
-          _totalStudents = activeStudents;
+          _totalStudents = cls.studentCount;
           _isLoading = false;
         });
       }

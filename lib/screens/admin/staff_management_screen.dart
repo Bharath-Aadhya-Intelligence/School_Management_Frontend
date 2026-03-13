@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/app_drawer.dart';
 import '../../services/file_service.dart';
 
 class StaffManagementScreen extends StatefulWidget {
@@ -35,6 +34,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
       if (!mounted) return;
       setState(() {
         _staff = (data as List).map((e) => StaffModel.fromJson(e)).toList();
+        _staff.sort((a, b) => a.name.compareTo(b.name)); // Apply name-based sorting to Staff Management
         _isLoading = false;
       });
     } on ApiException catch (e) {

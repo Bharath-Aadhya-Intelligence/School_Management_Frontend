@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/sort_utils.dart';
 import '../../services/file_service.dart';
 
 class VanFeesScreen extends StatefulWidget {
@@ -49,11 +50,15 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
       _error = null;
     });
     try {
-      final data = await ApiClient.get('/van-fees/${widget.classId}');
+      final response = await ApiClient.get('/van-fees/${widget.classId}');
       if (!mounted) return;
+      final vanFeeList = (response as List)
+          .map((json) => StudentVanFeeModel.fromJson(json))
+          .toList();
+      vanFeeList.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
+
       setState(() {
-        _vanFees =
-            (data as List).map((e) => StudentVanFeeModel.fromJson(e)).toList();
+        _vanFees = vanFeeList;
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -71,6 +76,24 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
     setState(() => _toggling = true);
     try {
       await ApiClient.patch('/van-fees/$studentId/$month?year=$_selectedYear');
+      if (!mounted) return;
+      await _fetchVanFees();
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+      }
+    } finally {
+      if (mounted) setState(() => _toggling = false);
+    }
+  }
+
+  Future<void> _updateAmount(String studentId, int month, double amount) async {
+    if (_toggling) return;
+    setState(() => _toggling = true);
+    try {
+      await ApiClient.patch(
+          '/van-fees/$studentId/$month/amount?year=$_selectedYear&amount=$amount');
       if (!mounted) return;
       await _fetchVanFees();
     } on ApiException catch (e) {
@@ -169,6 +192,7 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
                               selectedYear: _selectedYear,
                               monthNames: _monthNames,
                               onToggle: _toggleVanFee,
+                              onUpdateAmount: _updateAmount,
                               isToggling: _toggling,
                             ),
                           ),
@@ -223,6 +247,7 @@ class _VanFeeCard extends StatelessWidget {
   final int selectedYear;
   final List<String> monthNames;
   final Function(String, int) onToggle;
+  final Function(String, int, double) onUpdateAmount;
   final bool isToggling;
 
   const _VanFeeCard(
@@ -230,13 +255,46 @@ class _VanFeeCard extends StatelessWidget {
       required this.selectedYear,
       required this.monthNames,
       required this.onToggle,
+      required this.onUpdateAmount,
       required this.isToggling});
+
+  void _showAmountDialog(BuildContext context, VanFeeRecord record) {
+    final ctrl = TextEditingController(text: record.amount.toStringAsFixed(0));
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Update Amount - ${monthNames[record.month - 1]}'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Monthly Fee',
+            prefixText: '₹',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final val = double.tryParse(ctrl.text);
+              if (val != null) {
+                onUpdateAmount(vanFee.studentId, record.month, val);
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final yearRecords =
-        vanFee.vanRecords.where((r) => r.year == selectedYear).toList();
+    final yearRecords = vanFee.vanRecords;
     final paidMonths = yearRecords.where((r) => r.isPaid).length;
 
     return Container(
@@ -251,8 +309,18 @@ class _VanFeeCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.directions_bus_rounded,
-                size: 18, color: AppTheme.staffPurple),
+            CircleAvatar(
+              radius: 12,
+              backgroundColor: AppTheme.staffPurple.withOpacity(0.12),
+              child: Text(
+                vanFee.rollNo.isNotEmpty ? vanFee.rollNo : '?',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black, // High contrast as requested by user's preference
+                ),
+              ),
+            ),
             const SizedBox(width: 8),
             Text(vanFee.studentName,
                 style: GoogleFonts.inter(
@@ -264,20 +332,26 @@ class _VanFeeCard extends StatelessWidget {
           ]),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: List.generate(12, (idx) {
+            spacing: 8,
+            runSpacing: 8,
+            children: [5, 6, 7, 8, 9, 10, 11, 0, 1, 2].map((idx) {
               final month = idx + 1;
               final record = yearRecords.firstWhere((r) => r.month == month,
                   orElse: () => VanFeeRecord(
-                      month: month, year: selectedYear, status: 'unpaid'));
+                      month: month,
+                      year: selectedYear,
+                      status: 'unpaid',
+                      amount: 0.0));
               final isPaid = record.isPaid;
               return GestureDetector(
                 onTap:
                     isToggling ? null : () => onToggle(vanFee.studentId, month),
+                onLongPress: isToggling
+                    ? null
+                    : () => _showAmountDialog(context, record),
                 child: Container(
-                  width: 44,
-                  height: 44,
+                  width: 54,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
                   decoration: BoxDecoration(
                     color: isPaid
                         ? AppTheme.paidGreen.withOpacity(0.15)
@@ -302,16 +376,21 @@ class _VanFeeCard extends StatelessWidget {
                                 color: isPaid
                                     ? AppTheme.paidGreen
                                     : AppTheme.textSecondary)),
-                        Icon(
-                            isPaid ? Icons.check_rounded : Icons.remove_rounded,
-                            size: 14,
+                        const SizedBox(height: 2),
+                        Text(
+                          '₹${record.amount.toStringAsFixed(0)}',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
                             color: isPaid
                                 ? AppTheme.paidGreen
-                                : AppTheme.textSecondary),
+                                : AppTheme.textSecondary,
+                          ),
+                        ),
                       ]),
                 ),
               );
-            }),
+            }).toList(),
           ),
         ],
       ),

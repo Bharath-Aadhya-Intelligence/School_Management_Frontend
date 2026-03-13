@@ -52,6 +52,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
       setState(() {
         _salaries =
             (data as List).map((e) => StaffSalaryModel.fromJson(e)).toList();
+        _salaries.sort((a, b) => a.staffName.compareTo(b.staffName));
         _isLoading = false;
       });
     } on ApiException catch (e) {

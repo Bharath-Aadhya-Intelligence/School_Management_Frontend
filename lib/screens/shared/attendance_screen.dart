@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/sort_utils.dart';
 import '../../widgets/app_drawer.dart';
 import '../../providers/auth_provider.dart';
 
@@ -19,11 +20,9 @@ class AttendanceScreen extends StatefulWidget {
 }
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
-  List<AttendanceSummary> _summaries = [];
   List<StudentModel> _students = [];
   AttendanceHistory? _todayAttendance;
   bool _loadingStudents = true;
-  bool _loadingSummary = true;
   bool _submitting = false;
   String? _error;
   DateTime _selectedDate = DateTime.now();
@@ -36,7 +35,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Future<void> _loadData() async {
-    await Future.wait([_fetchStudents(), _fetchSummary()]);
+    await _fetchStudents();
     await _fetchTodayAttendance();
   }
 
@@ -48,6 +47,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           .map((e) => StudentModel.fromJson(e))
           .where((s) => s.isActive)
           .toList();
+      students.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
       setState(() {
         _students = students;
         _loadingStudents = false;
@@ -66,22 +66,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
-  Future<void> _fetchSummary() async {
-    try {
-      final data = await ApiClient.get('/attendance/${widget.classId}');
-      if (!mounted) return;
-      setState(() {
-        _summaries =
-            (data as List).map((e) => AttendanceSummary.fromJson(e)).toList();
-        _loadingSummary = false;
-      });
-    } on ApiException catch (e) {
-      setState(() {
-        _error = e.message;
-        _loadingSummary = false;
-      });
-    }
-  }
 
   Future<void> _fetchTodayAttendance() async {
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
@@ -355,7 +339,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             ? AppTheme.paidGreen.withOpacity(0.12)
                             : AppTheme.unpaidRed.withOpacity(0.12),
                         child: Text(
-                          s.rollNo,
+                          s.rollNo.isNotEmpty ? s.rollNo : '?',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,

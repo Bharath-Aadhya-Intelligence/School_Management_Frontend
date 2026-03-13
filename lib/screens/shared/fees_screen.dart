@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/sort_utils.dart';
 import '../../services/file_service.dart';
 
 class FeesScreen extends StatefulWidget {
@@ -32,10 +33,15 @@ class _FeesScreenState extends State<FeesScreen> {
       _error = null;
     });
     try {
-      final data = await ApiClient.get('/fees/${widget.classId}');
+      final response = await ApiClient.get('/fees/${widget.classId}');
       if (!mounted) return;
+      final feeList = (response as List)
+          .map((json) => StudentFeeModel.fromJson(json))
+          .toList();
+      feeList.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
+
       setState(() {
-        _fees = (data as List).map((e) => StudentFeeModel.fromJson(e)).toList();
+        _fees = feeList;
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -286,6 +292,19 @@ class _FeeCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
+            CircleAvatar(
+              radius: 12,
+              backgroundColor: AppTheme.primaryBlue.withOpacity(0.12),
+              child: Text(
+                fee.rollNo.isNotEmpty ? fee.rollNo : '?',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primaryBlue,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
             Text(fee.studentName,
                 style: GoogleFonts.inter(
                     fontSize: 14, fontWeight: FontWeight.w600)),

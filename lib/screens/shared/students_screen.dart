@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/sort_utils.dart';
 import '../../widgets/app_drawer.dart';
 
 class StudentsScreen extends StatefulWidget {
@@ -35,9 +36,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
     try {
       final data = await ApiClient.get('/students/${widget.classId}');
       if (!mounted) return;
+      final students = (data as List).map((e) => StudentModel.fromJson(e)).toList();
+      students.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
       setState(() {
-        _students =
-            (data as List).map((e) => StudentModel.fromJson(e)).toList();
+        _students = students;
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -65,6 +67,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final rollCtrl = TextEditingController();
     final parentCtrl = TextEditingController();
     final contactCtrl = TextEditingController();
+    final studentFeeCtrl = TextEditingController();
+    final vanFeeCtrl = TextEditingController();
     bool vanEnrolled = false;
 
     showModalBottomSheet(
@@ -99,6 +103,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     decoration: const InputDecoration(
                         labelText: 'Roll Number',
                         prefixIcon: Icon(Icons.numbers_rounded))),
+                if (vanEnrolled) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                      controller: vanFeeCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                          labelText: 'Total Van Fee (Annual)',
+                          prefixIcon: Icon(Icons.directions_bus_rounded))),
+                ],
                 const SizedBox(height: 12),
                 TextField(
                     controller: parentCtrl,
@@ -112,6 +125,13 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     decoration: const InputDecoration(
                         labelText: 'Contact Number',
                         prefixIcon: Icon(Icons.phone_outlined))),
+                const SizedBox(height: 12),
+                TextField(
+                    controller: studentFeeCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                        labelText: 'Student Fee (Total)',
+                        prefixIcon: Icon(Icons.payments_outlined))),
                 const SizedBox(height: 12),
                 SwitchListTile(
                   value: vanEnrolled,
@@ -144,6 +164,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           'contact': contactCtrl.text.trim(),
                           'van_enrolled': vanEnrolled,
                           'class_id': widget.classId,
+                          'student_fee':
+                              double.tryParse(studentFeeCtrl.text.trim()) ?? 0,
+                          'van_fee':
+                              double.tryParse(vanFeeCtrl.text.trim()) ?? 0,
                         });
                         _fetchStudents();
                         if (mounted) {
@@ -176,6 +200,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final rollCtrl = TextEditingController(text: student.rollNo);
     final parentCtrl = TextEditingController(text: student.parentName);
     final contactCtrl = TextEditingController(text: student.contact);
+    // Note: Fees are not in StudentModel yet, so we'll start with empty or fetch if needed
+    final studentFeeCtrl =
+        TextEditingController(text: student.studentFee.toStringAsFixed(0));
+    final vanFeeCtrl =
+        TextEditingController(text: student.vanFee.toStringAsFixed(0));
     bool vanEnrolled = student.vanEnrolled;
 
     showModalBottomSheet(
@@ -200,28 +229,51 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 const SizedBox(height: 20),
                 TextField(
                     controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Full Name')),
+                    decoration: const InputDecoration(
+                        labelText: 'Full Name',
+                        prefixIcon: Icon(Icons.person_outline))),
                 const SizedBox(height: 12),
                 TextField(
                     controller: rollCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Roll Number')),
+                    decoration: const InputDecoration(
+                        labelText: 'Roll Number',
+                        prefixIcon: Icon(Icons.numbers_rounded))),
+                if (vanEnrolled) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                      controller: vanFeeCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                          labelText: 'Total Van Fee (Annual)',
+                          prefixIcon: Icon(Icons.directions_bus_rounded))),
+                ],
                 const SizedBox(height: 12),
                 TextField(
                     controller: parentCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Parent Name')),
+                    decoration: const InputDecoration(
+                        labelText: 'Parent Name',
+                        prefixIcon: Icon(Icons.family_restroom_rounded))),
                 const SizedBox(height: 12),
                 TextField(
                     controller: contactCtrl,
                     keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: 'Contact')),
+                    decoration: const InputDecoration(
+                        labelText: 'Contact',
+                        prefixIcon: Icon(Icons.phone_outlined))),
+                const SizedBox(height: 12),
+                TextField(
+                    controller: studentFeeCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                        labelText: 'Student Fee (Total)',
+                        prefixIcon: Icon(Icons.payments_outlined))),
                 const SizedBox(height: 12),
                 SwitchListTile(
                   value: vanEnrolled,
                   onChanged: (v) => setModalState(() => vanEnrolled = v),
                   title: Text('Van Enrolled',
                       style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                  secondary: const Icon(Icons.directions_bus_rounded),
                   contentPadding: EdgeInsets.zero,
                 ),
                 const SizedBox(height: 16),
@@ -242,6 +294,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           'parent_name': parentCtrl.text.trim(),
                           'contact': contactCtrl.text.trim(),
                           'van_enrolled': vanEnrolled,
+                          'student_fee':
+                              double.tryParse(studentFeeCtrl.text.trim()) ?? 0,
+                          'van_fee':
+                              double.tryParse(vanFeeCtrl.text.trim()) ?? 0,
                         });
                         if (!mounted) return;
                         _fetchStudents();
@@ -418,7 +474,7 @@ class _StudentCard extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                student.rollNo,
+                student.rollNo.isNotEmpty ? student.rollNo : '?',
                 style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,

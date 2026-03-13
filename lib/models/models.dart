@@ -31,14 +31,19 @@ class ClassModel {
   final String classId;
   final String name;
   final String staffEmail;
+  final int studentCount;
 
   ClassModel(
-      {required this.classId, required this.name, required this.staffEmail});
+      {required this.classId,
+      required this.name,
+      required this.staffEmail,
+      this.studentCount = 0});
 
   factory ClassModel.fromJson(Map<String, dynamic> json) => ClassModel(
         classId: json['class_id'],
         name: json['name'],
         staffEmail: json['staff_email'],
+        studentCount: json['student_count'] ?? 0,
       );
 }
 
@@ -50,6 +55,8 @@ class StudentModel {
   final String contact;
   final bool vanEnrolled;
   final String classId;
+  final double studentFee;
+  final double vanFee;
   final bool isActive;
 
   StudentModel({
@@ -60,17 +67,21 @@ class StudentModel {
     required this.contact,
     required this.vanEnrolled,
     required this.classId,
+    this.studentFee = 0.0,
+    this.vanFee = 0.0,
     required this.isActive,
   });
 
   factory StudentModel.fromJson(Map<String, dynamic> json) => StudentModel(
         studentId: json['student_id'],
         name: json['name'],
-        rollNo: json['roll_no'],
+        rollNo: json['roll_no'] ?? '',
         parentName: json['parent_name'],
         contact: json['contact'],
         vanEnrolled: json['van_enrolled'] ?? false,
         classId: json['class_id'],
+        studentFee: (json['student_fee'] as num?)?.toDouble() ?? 0.0,
+        vanFee: (json['van_fee'] as num?)?.toDouble() ?? 0.0,
         isActive: json['is_active'] ?? true,
       );
 }
@@ -95,12 +106,14 @@ class FeeInstallment {
 class StudentFeeModel {
   final String studentId;
   final String studentName;
+  final String rollNo;
   final String classId;
   final List<FeeInstallment> installments;
 
   StudentFeeModel({
     required this.studentId,
     required this.studentName,
+    required this.rollNo,
     required this.classId,
     required this.installments,
   });
@@ -109,6 +122,7 @@ class StudentFeeModel {
       StudentFeeModel(
         studentId: json['student_id'],
         studentName: json['student_name'],
+        rollNo: json['roll_no'] ?? '',
         classId: json['class_id'],
         installments: (json['installments'] as List)
             .map((e) => FeeInstallment.fromJson(e))
@@ -122,18 +136,21 @@ class VanFeeRecord {
   final int month;
   final int year;
   final String status;
+  final double amount;
   final String? paidDate;
 
   VanFeeRecord(
       {required this.month,
       required this.year,
       required this.status,
+      required this.amount,
       this.paidDate});
 
   factory VanFeeRecord.fromJson(Map<String, dynamic> json) => VanFeeRecord(
         month: json['month'],
         year: json['year'],
         status: json['status'] ?? 'unpaid',
+        amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
         paidDate: json['paid_date'],
       );
 
@@ -143,12 +160,14 @@ class VanFeeRecord {
 class StudentVanFeeModel {
   final String studentId;
   final String studentName;
+  final String rollNo;
   final String classId;
   final List<VanFeeRecord> vanRecords;
 
   StudentVanFeeModel({
     required this.studentId,
     required this.studentName,
+    required this.rollNo,
     required this.classId,
     required this.vanRecords,
   });
@@ -157,6 +176,7 @@ class StudentVanFeeModel {
       StudentVanFeeModel(
         studentId: json['student_id'],
         studentName: json['student_name'],
+        rollNo: json['roll_no'] ?? '',
         classId: json['class_id'],
         vanRecords: (json['van_records'] as List)
             .map((e) => VanFeeRecord.fromJson(e))
@@ -248,15 +268,17 @@ class StaffSalaryModel {
 class AttendanceRecord {
   final String studentId;
   final String? studentName;
+  final String? rollNo;
   String status; // 'present' | 'absent'
 
   AttendanceRecord(
-      {required this.studentId, this.studentName, required this.status});
+      {required this.studentId, this.studentName, this.rollNo, required this.status});
 
   factory AttendanceRecord.fromJson(Map<String, dynamic> json) =>
       AttendanceRecord(
         studentId: json['student_id'],
         studentName: json['student_name'],
+        rollNo: json['roll_no'],
         status: json['status']?.toString().toLowerCase() ?? 'absent',
       );
 
