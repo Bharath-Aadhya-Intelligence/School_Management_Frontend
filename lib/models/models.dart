@@ -89,18 +89,28 @@ class StudentModel {
 class FeeInstallment {
   final int installmentNo;
   final String status;
+  final double targetAmount;
+  final double amountPaid;
   final String? paidDate;
 
-  FeeInstallment(
-      {required this.installmentNo, required this.status, this.paidDate});
+  FeeInstallment({
+    required this.installmentNo,
+    required this.status,
+    this.targetAmount = 0.0,
+    this.amountPaid = 0.0,
+    this.paidDate,
+  });
 
   factory FeeInstallment.fromJson(Map<String, dynamic> json) => FeeInstallment(
         installmentNo: json['installment_no'],
         status: json['status'] ?? 'unpaid',
+        targetAmount: (json['target_amount'] as num?)?.toDouble() ?? 0.0,
+        amountPaid: (json['amount_paid'] as num?)?.toDouble() ?? 0.0,
         paidDate: json['paid_date'],
       );
 
   bool get isPaid => status == 'paid';
+  bool get isPartial => status == 'partially_paid';
 }
 
 class StudentFeeModel {
@@ -108,6 +118,9 @@ class StudentFeeModel {
   final String studentName;
   final String rollNo;
   final String classId;
+  final double totalFee;
+  final double amountPaid;
+  final double balance;
   final List<FeeInstallment> installments;
 
   StudentFeeModel({
@@ -115,6 +128,9 @@ class StudentFeeModel {
     required this.studentName,
     required this.rollNo,
     required this.classId,
+    required this.totalFee,
+    required this.amountPaid,
+    required this.balance,
     required this.installments,
   });
 
@@ -124,6 +140,9 @@ class StudentFeeModel {
         studentName: json['student_name'],
         rollNo: json['roll_no'] ?? '',
         classId: json['class_id'],
+        totalFee: (json['total_fee'] as num?)?.toDouble() ?? 0.0,
+        amountPaid: (json['amount_paid'] as num?)?.toDouble() ?? 0.0,
+        balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
         installments: (json['installments'] as List)
             .map((e) => FeeInstallment.fromJson(e))
             .toList(),
