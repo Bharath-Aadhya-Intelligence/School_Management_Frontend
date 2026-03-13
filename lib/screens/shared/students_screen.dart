@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/sort_utils.dart';
 import '../../widgets/app_drawer.dart';
+import '../../providers/auth_provider.dart';
 
 class StudentsScreen extends StatefulWidget {
   final String classId;
@@ -40,7 +42,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
     try {
       final data = await ApiClient.get('/students/${widget.classId}');
       if (!mounted) return;
-      final students = (data as List).map((e) => StudentModel.fromJson(e)).toList();
+      final students =
+          (data as List).map((e) => StudentModel.fromJson(e)).toList();
       students.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
       setState(() {
         _students = students;
@@ -182,16 +185,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   contentPadding: EdgeInsets.zero,
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: const Text('Cancel'),
-                      ),
+                Row(children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
                       child: ElevatedButton(
                     onPressed: () async {
                       if (nameCtrl.text.isEmpty ||
@@ -221,10 +223,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           );
                         }
                       } on ApiException catch (e) {
-                        if (mounted)
+                          if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text(e.message),
                               backgroundColor: AppTheme.unpaidRed));
+                        }
                       }
                     },
                     child: const Text('Add Student'),
@@ -243,7 +246,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final rollCtrl = TextEditingController(text: student.rollNo);
     final parentCtrl = TextEditingController(text: student.parentName);
     final contactCtrl = TextEditingController(text: student.contact);
-    // Note: Fees are not in StudentModel yet, so we'll start with empty or fetch if needed
+    // Use studentFee and vanFee from the model
     final studentFeeCtrl =
         TextEditingController(text: student.studentFee.toStringAsFixed(0));
     final vanFeeCtrl =
@@ -335,48 +338,52 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                    onPressed: () async {
-                      Navigator.pop(ctx);
-                      try {
-                        await ApiClient.put('/students/${student.studentId}', {
-                          'name': nameCtrl.text.trim(),
-                          'roll_no': rollCtrl.text.trim(),
-                          'parent_name': parentCtrl.text.trim(),
-                          'contact': contactCtrl.text.trim(),
-                          'van_enrolled': vanEnrolled,
-                          'student_fee':
-                              double.tryParse(studentFeeCtrl.text.trim()) ?? 0,
-                          'van_fee':
-                              double.tryParse(vanFeeCtrl.text.trim()) ?? 0,
-                        });
-                        if (!mounted) return;
-                        _fetchStudents();
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Student updated'),
-                              backgroundColor: AppTheme.paidGreen
-                            ),
-                          );
-                        }
-                      } on ApiException catch (e) {
-                        if (mounted)
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.message),
-                              backgroundColor: AppTheme.unpaidRed,
-                            ),
-                          );
-                      }
-                    },
-                    child: const Text('Save'),
-                  ),
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          try {
+                            await ApiClient.put(
+                                '/students/${student.studentId}', {
+                              'name': nameCtrl.text.trim(),
+                              'roll_no': rollCtrl.text.trim(),
+                              'parent_name': parentCtrl.text.trim(),
+                              'contact': contactCtrl.text.trim(),
+                              'van_enrolled': vanEnrolled,
+                              'student_fee':
+                                  double.tryParse(studentFeeCtrl.text.trim()) ??
+                                      0,
+                              'van_fee':
+                                  double.tryParse(vanFeeCtrl.text.trim()) ?? 0,
+                            });
+                            if (!mounted) return;
+                            _fetchStudents();
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Student updated'),
+                                    backgroundColor: AppTheme.paidGreen),
+                              );
+                            }
+                          } on ApiException catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(e.message),
+                                  backgroundColor: AppTheme.unpaidRed,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text('Save'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -406,21 +413,23 @@ class _StudentsScreenState extends State<StudentsScreen> {
         await ApiClient.delete('/students/${student.studentId}');
         if (!mounted) return;
         _fetchStudents();
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Student removed'),
               backgroundColor: AppTheme.paidGreen,
             ),
           );
+        }
       } on ApiException catch (e) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(e.message),
               backgroundColor: AppTheme.unpaidRed,
             ),
           );
+        }
       }
     }
   }
@@ -428,8 +437,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
   @override
   Widget build(BuildContext context) {
     final filtered = _filtered;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final String role = authProvider.isAdmin ? 'admin' : 'staff';
 
     return Scaffold(
+      drawer: AppDrawer(role: role, classId: widget.classId),
       appBar: AppBar(
         title: Text(widget.className),
         elevation: 0,
@@ -478,46 +490,45 @@ class _StudentsScreenState extends State<StudentsScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.error_outline_rounded,
-                          size: 64,
-                          color: AppTheme.unpaidRed,
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.error_outline_rounded,
+                              size: 64,
+                              color: AppTheme.unpaidRed,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(_error!),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _fetchStudents,
+                              child: const Text('Retry'),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(_error!),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _fetchStudents,
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  )
-                : filtered.isEmpty
-                ? EmptyState(
-                    icon: Icons.people_outline_rounded,
-                    title: _searchQuery.isEmpty ? 'No Students' : 'No Results',
-                    subtitle: _searchQuery.isEmpty
-                        ? 'Add students using the button below'
-                        : 'Try a different search term',
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (ctx, i) {
-                      final s = filtered[i];
-                      return _StudentCard(
-                        student: s,
-                        onEdit: () => _showEditDialog(s),
-                        onDelete: () => _deleteStudent(s),
-                      );
-                    },
-                  ),
+                      )
+                    : filtered.isEmpty
+                        ? const EmptyState(
+                            icon: Icons.people_outline_rounded,
+                            title: 'No Students',
+                            subtitle: 'Add students using the button below',
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                            itemCount: filtered.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (ctx, i) {
+                              final s = filtered[i];
+                              return _StudentCard(
+                                student: s,
+                                onEdit: () => _showEditDialog(s),
+                                onDelete: () => _deleteStudent(s),
+                              );
+                            },
+                          ),
           ),
         ],
       ),
@@ -584,7 +595,7 @@ class _StudentCard extends StatelessWidget {
                     ),
                     if (!student.isActive) ...[
                       const SizedBox(width: 6),
-                      StatusBadge(
+                      const StatusBadge(
                         status: 'inactive',
                         paidLabel: 'Active',
                         unpaidLabel: 'Inactive',
@@ -604,7 +615,7 @@ class _StudentCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.directions_bus_rounded,
                               size: 11,
                               color: AppTheme.staffPurple,
@@ -667,6 +678,70 @@ class _StudentCard extends StatelessWidget {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class StatusBadge extends StatelessWidget {
+  final String status;
+  final String paidLabel;
+  final String unpaidLabel;
+  const StatusBadge({
+    super.key,
+    required this.status,
+    required this.paidLabel,
+    required this.unpaidLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isPaid =
+        status.toLowerCase() == 'paid' || status.toLowerCase() == 'active';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color:
+            (isPaid ? AppTheme.paidGreen : AppTheme.unpaidRed).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        isPaid ? paidLabel : unpaidLabel,
+        style: GoogleFonts.inter(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: isPaid ? AppTheme.paidGreen : AppTheme.unpaidRed,
+        ),
+      ),
+    );
+  }
+}
+
+class EmptyState extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 64, color: AppTheme.textSecondary.withOpacity(0.5)),
+          const SizedBox(height: 16),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          if (subtitle != null) ...[
+            const SizedBox(height: 8),
+            Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium),
+          ],
         ],
       ),
     );

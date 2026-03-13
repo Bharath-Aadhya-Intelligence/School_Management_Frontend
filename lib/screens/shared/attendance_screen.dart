@@ -29,7 +29,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   bool _submitting = false;
   String? _error;
   DateTime _selectedDate = DateTime.now();
-  Map<String, String> _attendanceMap = {}; // studentId -> status
+  final Map<String, String> _attendanceMap = {}; // studentId -> status
   bool _isAscending = true;
 
   @override
@@ -53,18 +53,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           .toList();
       students.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
       setState(() {
-        // Sort students naturally by roll number
-        students.sort((a, b) {
-          final numA = int.tryParse(a.rollNo.replaceAll(RegExp(r'[^0-9]'), ''));
-          final numB = int.tryParse(b.rollNo.replaceAll(RegExp(r'[^0-9]'), ''));
-          if (numA != null && numB != null) {
-            final cmp = numA.compareTo(numB);
-            return _isAscending ? cmp : -cmp;
-          }
-          final cmp = a.rollNo.compareTo(b.rollNo);
-          return _isAscending ? cmp : -cmp;
-        });
-
         _students = students;
         _loadingStudents = false;
         // Initialize attendance map
@@ -78,23 +66,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       setState(() {
         _error = e.message;
         _loadingStudents = false;
-      });
-    }
-  }
-
-  Future<void> _fetchSummary() async {
-    try {
-      final data = await ApiClient.get('/attendance/${widget.classId}');
-      if (!mounted) return;
-      setState(() {
-        _summaries =
-            (data as List).map((e) => AttendanceSummary.fromJson(e)).toList();
-        _loadingSummary = false;
-      });
-    } on ApiException catch (e) {
-      setState(() {
-        _error = e.message;
-        _loadingSummary = false;
       });
     }
   }
@@ -178,7 +149,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final String role = authProvider.isAdmin ? 'admin' : 'staff';
+
     return Scaffold(
+      drawer: AppDrawer(role: role, classId: widget.classId),
       appBar: AppBar(
         title: Text('${widget.className} - Attendance'),
         elevation: 0,
@@ -192,20 +167,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               setState(() {
                 _isAscending = !_isAscending;
                 // Re-sort the existing list
-                _students.sort((a, b) {
-                  final numA = int.tryParse(
-                    a.rollNo.replaceAll(RegExp(r'[^0-9]'), ''),
-                  );
-                  final numB = int.tryParse(
-                    b.rollNo.replaceAll(RegExp(r'[^0-9]'), ''),
-                  );
-                  if (numA != null && numB != null) {
-                    final cmp = numA.compareTo(numB);
-                    return _isAscending ? cmp : -cmp;
-                  }
-                  final cmp = a.rollNo.compareTo(b.rollNo);
-                  return _isAscending ? cmp : -cmp;
-                });
+                _students.sort((a, b) => _isAscending
+                    ? SortUtils.compareNatural(a.rollNo, b.rollNo)
+                    : SortUtils.compareNatural(b.rollNo, a.rollNo));
               });
             },
           ),
@@ -265,9 +229,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     setState(() {
                       _selectedDate = picked;
                       _todayAttendance = null;
-                      _attendanceMap = {
-                        for (final s in _students) s.studentId: 'present',
-                      };
+                      _attendanceMap.clear();
+                      for (final s in _students) {
+                        _attendanceMap[s.studentId] = 'present';
+                      }
                     });
                     await _fetchTodayAttendance();
                   }
@@ -443,9 +408,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         // Student List
         Expanded(
           child: _students.isEmpty
-              ? const EmptyState(
-                  icon: Icons.people_outline_rounded,
-                  title: 'No Students',
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.people_outline_rounded,
+                          size: 64, color: AppTheme.textSecondary),
+                      SizedBox(height: 16),
+                      Text('No Students Found'),
+                    ],
+                  ),
                 )
               : ListView.separated(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, isAdmin ? 16 : 100),
@@ -603,6 +575,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.paidGreen,
+                      foregroundColor: Colors.white,
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
