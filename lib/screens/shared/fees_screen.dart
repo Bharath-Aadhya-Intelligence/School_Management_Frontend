@@ -98,7 +98,7 @@ class _FeesScreenState extends State<FeesScreen> {
   void _downloadReceipt(String studentId, int installmentNo) async {
     try {
       final fileName = 'receipt_${studentId.substring(0, 4)}_inst$installmentNo.pdf';
-      final path = '/exports/fees/receipt/$studentId/$installmentNo';
+      final path = '/exports/receipt/$studentId/$installmentNo';
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Downloading Receipt...')));
       await FileService.downloadAndShare(path, fileName);
