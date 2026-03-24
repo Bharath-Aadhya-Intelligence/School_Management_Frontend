@@ -8,6 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/sort_utils.dart';
 import '../../widgets/app_drawer.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/file_service.dart';
 
 class AttendanceScreen extends StatefulWidget {
   final String classId;
@@ -121,8 +122,24 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Attendance saved for $dateStr'),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Attendance successfully submitted for $dateStr.',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: AppTheme.paidGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -158,6 +175,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         title: Text('${widget.className} - Attendance'),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_rounded),
+            tooltip: 'Export PDF',
+            onPressed: () async {
+              try {
+                final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+                await FileService.downloadAndShare(
+                  '/attendance/${widget.classId}/$dateStr/export',
+                  'attendance_${widget.classId}_$dateStr.pdf',
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Export failed: $e'),
+                      backgroundColor: AppTheme.unpaidRed),
+                );
+              }
+            },
+          ),
           IconButton(
             icon: Icon(
               _isAscending ? Icons.sort_by_alpha_rounded : Icons.sort_rounded,

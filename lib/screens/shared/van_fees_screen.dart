@@ -142,6 +142,10 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text('${widget.className} - Van Fees'),
         elevation: 0,
         actions: [

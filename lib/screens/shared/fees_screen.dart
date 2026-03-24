@@ -188,6 +188,10 @@ class _FeesScreenState extends State<FeesScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text('${widget.className} - Fees'),
         elevation: 0,
         actions: [
