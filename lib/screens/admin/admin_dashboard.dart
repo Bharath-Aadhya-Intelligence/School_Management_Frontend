@@ -393,25 +393,32 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFEFF6FF),
+          color: isDark
+              ? AppTheme.primaryBlue.withOpacity(0.12)
+              : const Color(0xFFEFF6FF),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFBFDBFE)),
+          border: Border.all(
+            color: isDark
+                ? AppTheme.primaryBlue.withOpacity(0.3)
+                : const Color(0xFFBFDBFE),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: AppTheme.primaryBlue),
+            Icon(icon, size: 16, color: isDark ? AppTheme.darkPrimary : AppTheme.primaryBlue),
             const SizedBox(width: 6),
             Text(label,
                 style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryBlue)),
+                    color: isDark ? AppTheme.darkPrimary : AppTheme.primaryBlue)),
           ],
         ),
       ),

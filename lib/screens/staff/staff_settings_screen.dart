@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 import '../../api/api_client.dart';
 import '../../services/file_service.dart';
 
@@ -23,7 +24,6 @@ class StaffSettingsScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
-              // TODO: Implement actual database clearing logic when local DB is added
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Local cache cleared!')),
@@ -228,6 +228,55 @@ class StaffSettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
+          Text('Appearance', style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkBorder
+                    : AppTheme.borderLight,
+              ),
+            ),
+            child: Consumer<ThemeProvider>(
+              builder: (context, themeProvider, _) {
+                return Row(
+                  children: [
+                    _buildThemeOption(
+                      context,
+                      mode: ThemeMode.light,
+                      icon: Icons.light_mode_rounded,
+                      label: 'Light',
+                      isSelected: themeProvider.themeMode == ThemeMode.light,
+                      onTap: () => themeProvider.setThemeMode(ThemeMode.light),
+                    ),
+                    _buildThemeOption(
+                      context,
+                      mode: ThemeMode.dark,
+                      icon: Icons.dark_mode_rounded,
+                      label: 'Dark',
+                      isSelected: themeProvider.themeMode == ThemeMode.dark,
+                      onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
+                    ),
+                    _buildThemeOption(
+                      context,
+                      mode: ThemeMode.system,
+                      icon: Icons.settings_brightness_rounded,
+                      label: 'System',
+                      isSelected: themeProvider.themeMode == ThemeMode.system,
+                      onTap: () => themeProvider.setThemeMode(ThemeMode.system),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           Text('Class Management',
               style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 12),
@@ -292,6 +341,46 @@ class StaffSettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context, {
+    required ThemeMode mode,
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final color = isSelected ? AppTheme.staffPurple : AppTheme.textSecondary;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppTheme.staffPurple.withOpacity(0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -172,6 +172,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return Scaffold(
       drawer: AppDrawer(role: role, classId: widget.classId),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text('${widget.className} - Attendance'),
         elevation: 0,
         actions: [
@@ -517,14 +521,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               decoration: BoxDecoration(
                                 color: isPresent
                                     ? AppTheme.paidGreen
-                                    : AppTheme.surfaceLight,
+                                    : AppTheme.lightBg,
                                 borderRadius: const BorderRadius.horizontal(
                                   left: Radius.circular(8),
                                 ),
                                 border: Border.all(
                                   color: isPresent
                                       ? AppTheme.paidGreen
-                                      : AppTheme.borderLight,
+                                      : AppTheme.lightBorder,
                                 ),
                               ),
                               child: Text(
@@ -554,14 +558,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               decoration: BoxDecoration(
                                 color: !isPresent
                                     ? AppTheme.unpaidRed
-                                    : AppTheme.surfaceLight,
+                                    : AppTheme.lightBg,
                                 borderRadius: const BorderRadius.horizontal(
                                   right: Radius.circular(8),
                                 ),
                                 border: Border.all(
                                   color: !isPresent
                                       ? AppTheme.unpaidRed
-                                      : AppTheme.borderLight,
+                                      : AppTheme.lightBorder,
                                 ),
                               ),
                               child: Text(

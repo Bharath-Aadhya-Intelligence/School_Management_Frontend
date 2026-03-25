@@ -74,7 +74,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
             colorScheme: ColorScheme.light(
               primary: AppTheme.staffPurple,
               onPrimary: Colors.white,
-              onSurface: AppTheme.textPrimary,
+              onSurface: AppTheme.lightText,
             ),
           ),
           child: child!,

@@ -54,7 +54,7 @@ class StatCard extends StatelessWidget {
                 style: GoogleFonts.inter(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppTheme.darkText : AppTheme.textPrimary)),
+                    color: isDark ? AppTheme.darkText : Theme.of(context).textTheme.bodyLarge?.color)),
             const SizedBox(height: 2),
             Text(title,
                 style: GoogleFonts.inter(

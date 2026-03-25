@@ -141,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen>
                           style: GoogleFonts.inter(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textPrimary,
+                            color: isDark ? Colors.white : AppTheme.lightText,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -159,12 +159,12 @@ class _LoginScreenState extends State<LoginScreen>
                         // Role Tab Selector
                         Container(
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.darkSurface : Colors.white,
+                            color: isDark ? AppTheme.darkCard : Colors.white,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                                 color: isDark
                                     ? AppTheme.darkBorder
-                                    : AppTheme.borderLight),
+                                    : AppTheme.lightBorder),
                           ),
                           padding: const EdgeInsets.all(4),
                           child: Row(
@@ -220,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     fontWeight: FontWeight.w600,
                                     color: isDark
                                         ? AppTheme.darkText
-                                        : AppTheme.textPrimary,
+                                        : AppTheme.lightText,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -253,7 +253,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     fontWeight: FontWeight.w600,
                                     color: isDark
                                         ? AppTheme.darkText
-                                        : AppTheme.textPrimary,
+                                        : AppTheme.lightText,
                                   ),
                                 ),
                                 const SizedBox(height: 8),

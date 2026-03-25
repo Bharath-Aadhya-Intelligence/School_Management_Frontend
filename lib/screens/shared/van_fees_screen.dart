@@ -364,15 +364,15 @@ class _VanFeeCard extends StatelessWidget {
                     color: isPaid
                         ? AppTheme.paidGreen.withOpacity(0.15)
                         : (isDark
-                            ? AppTheme.darkSurface
-                            : AppTheme.surfaceLight),
+                            ? AppTheme.darkCard
+                            : AppTheme.lightBg),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                         color: isPaid
                             ? AppTheme.paidGreen
                             : (isDark
                                 ? AppTheme.darkBorder
-                                : AppTheme.borderLight)),
+                                : AppTheme.lightBorder)),
                   ),
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

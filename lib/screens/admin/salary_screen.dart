@@ -129,6 +129,10 @@ class _SalaryScreenState extends State<SalaryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Staff Salary'),
         actions: [
           IconButton(
@@ -340,8 +344,8 @@ class _SalaryCard extends StatelessWidget {
                       color: isPaid
                           ? AppTheme.paidGreen.withOpacity(0.12)
                           : (isDark
-                              ? AppTheme.darkSurface
-                              : AppTheme.surfaceLight),
+                              ? AppTheme.darkCard
+                              : AppTheme.lightBg),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isPaid
