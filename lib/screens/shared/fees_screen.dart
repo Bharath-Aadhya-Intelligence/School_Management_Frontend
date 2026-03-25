@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/sort_utils.dart';
 import '../../services/file_service.dart';
+import '../../providers/auth_provider.dart';
 
 class FeesScreen extends StatefulWidget {
   final String classId;
@@ -296,7 +298,7 @@ class _FeesScreenState extends State<FeesScreen> {
                             separatorBuilder: (_, __) => const SizedBox(height: 12),
                             itemBuilder: (ctx, i) => _FeeCard(
                                 fee: _fees[i],
-                                onAction: _showPaymentDialog,
+                                onAction: Provider.of<AuthProvider>(context, listen: false).isAdmin ? _showPaymentDialog : null,
                                 onReceipt: _downloadReceipt,
                                 processing: _processing),
                           ),
@@ -329,7 +331,7 @@ class _StatItem extends StatelessWidget {
 
 class _FeeCard extends StatelessWidget {
   final StudentFeeModel fee;
-  final Function(StudentFeeModel, FeeInstallment) onAction;
+  final Function(StudentFeeModel, FeeInstallment)? onAction;
   final Function(String, int) onReceipt;
   final bool processing;
 
@@ -391,7 +393,7 @@ class _FeeCard extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.only(right: idx < 2 ? 8.0 : 0),
                   child: InkWell(
-                    onTap: processing ? null : () => onAction(fee, inst),
+                    onTap: (processing || onAction == null) ? null : () => onAction!(fee, inst),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.all(8),

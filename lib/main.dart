@@ -54,9 +54,14 @@ class _SchoolManagementAppState extends State<SchoolManagementApp> {
         // If not logged in and not heading to login (or splash), force login
         if (!isLoggedIn && !isLoginPage) return '/login';
 
-        // If logged in and trying to access login, redirect to proper dashboard
-        if (isLoggedIn && isLoginPage) {
-          return authProvider.isAdmin ? '/admin' : '/staff';
+        // Role-based Path Protection
+        if (isLoggedIn) {
+          final isAdminPath = state.matchedLocation.startsWith('/admin');
+          final isStaffPath = state.matchedLocation.startsWith('/staff');
+
+          if (isAdminPath && !authProvider.isAdmin) return '/staff';
+          if (isStaffPath && authProvider.isAdmin) return '/admin';
+          if (isLoginPage) return authProvider.isAdmin ? '/admin' : '/staff';
         }
 
         return null;

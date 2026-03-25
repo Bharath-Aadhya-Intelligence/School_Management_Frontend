@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/sort_utils.dart';
 import '../../services/file_service.dart';
+import '../../providers/auth_provider.dart';
 
 class VanFeesScreen extends StatefulWidget {
   final String classId;
@@ -191,14 +193,17 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
                             itemCount: _vanFees.length,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 12),
-                            itemBuilder: (ctx, i) => _VanFeeCard(
-                              vanFee: _vanFees[i],
-                              selectedYear: _selectedYear,
-                              monthNames: _monthNames,
-                              onToggle: _toggleVanFee,
-                              onUpdateAmount: _updateAmount,
-                              isToggling: _toggling,
-                            ),
+                            itemBuilder: (ctx, i) {
+                              final isAdmin = Provider.of<AuthProvider>(context, listen: false).isAdmin;
+                              return _VanFeeCard(
+                                vanFee: _vanFees[i],
+                                selectedYear: _selectedYear,
+                                monthNames: _monthNames,
+                                onToggle: isAdmin ? _toggleVanFee : null,
+                                onUpdateAmount: isAdmin ? _updateAmount : null,
+                                isToggling: _toggling,
+                              );
+                            },
                           ),
           ),
         ],
@@ -250,8 +255,8 @@ class _VanFeeCard extends StatelessWidget {
   final StudentVanFeeModel vanFee;
   final int selectedYear;
   final List<String> monthNames;
-  final Function(String, int) onToggle;
-  final Function(String, int, double) onUpdateAmount;
+  final Function(String, int)? onToggle;
+  final Function(String, int, double)? onUpdateAmount;
   final bool isToggling;
 
   const _VanFeeCard(
@@ -283,8 +288,8 @@ class _VanFeeCard extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               final val = double.tryParse(ctrl.text);
-              if (val != null) {
-                onUpdateAmount(vanFee.studentId, record.month, val);
+              if (val != null && onUpdateAmount != null) {
+                onUpdateAmount!(vanFee.studentId, record.month, val);
                 Navigator.pop(ctx);
               }
             },
@@ -321,7 +326,7 @@ class _VanFeeCard extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black, // High contrast as requested by user's preference
+                  color: Colors.black,
                 ),
               ),
             ),
@@ -348,9 +353,8 @@ class _VanFeeCard extends StatelessWidget {
                       amount: 0.0));
               final isPaid = record.isPaid;
               return GestureDetector(
-                onTap:
-                    isToggling ? null : () => onToggle(vanFee.studentId, month),
-                onLongPress: isToggling
+                onTap: (isToggling || onToggle == null) ? null : () => onToggle!(vanFee.studentId, month),
+                onLongPress: (isToggling || onUpdateAmount == null)
                     ? null
                     : () => _showAmountDialog(context, record),
                 child: Container(

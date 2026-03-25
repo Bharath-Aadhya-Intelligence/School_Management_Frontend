@@ -1,0 +1,227 @@
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (1.26.20) or chardet (7.0.1)/charset_normalizer (3.4.5) doesn't match a supported version!
+  warnings.warn(
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.13/bin/uvicorn", line 8, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/main.py", line 412, in main
+    run(
+    ~~~^
+        app,
+        ^^^^
+    ...<45 lines>...
+        h11_max_incomplete_event_size=h11_max_incomplete_event_size,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/main.py", line 579, in run
+    server.run()
+    ~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 69, in serve
+    await self._serve(sockets)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 76, in _serve
+    config.load()
+    ~~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/config.py", line 434, in load
+    self.loaded_app = import_from_string(self.app)
+                      ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/Users/manojsarya/Desktop/School_Management_Backend/main.py", line 11, in <module>
+    from routers import auth, classes, students, fees, van_fees, staff_members, salary, attendance, exports, logs
+  File "/Users/manojsarya/Desktop/School_Management_Backend/routers/attendance.py", line 12, in <module>
+    from main import limiter
+ImportError: cannot import name 'limiter' from partially initialized module 'main' (most likely due to a circular import) (/Users/manojsarya/Desktop/School_Management_Backend/main.py)
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (1.26.20) or chardet (7.0.1)/charset_normalizer (3.4.5) doesn't match a supported version!
+  warnings.warn(
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.13/bin/uvicorn", line 8, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/main.py", line 412, in main
+    run(
+    ~~~^
+        app,
+        ^^^^
+    ...<45 lines>...
+        h11_max_incomplete_event_size=h11_max_incomplete_event_size,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/main.py", line 579, in run
+    server.run()
+    ~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 69, in serve
+    await self._serve(sockets)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 76, in _serve
+    config.load()
+    ~~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/config.py", line 434, in load
+    self.loaded_app = import_from_string(self.app)
+                      ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/Users/manojsarya/Desktop/School_Management_Backend/main.py", line 10, in <module>
+    from routers import auth, classes, students, fees, van_fees, staff_members, salary, attendance, exports, logs
+  File "/Users/manojsarya/Desktop/School_Management_Backend/routers/logs.py", line 7, in <module>
+    from services.whatsapp_service import get_twilio_message_status
+ImportError: cannot import name 'get_twilio_message_status' from 'services.whatsapp_service' (/Users/manojsarya/Desktop/School_Management_Backend/services/whatsapp_service.py)
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (1.26.20) or chardet (7.0.1)/charset_normalizer (3.4.5) doesn't match a supported version!
+  warnings.warn(
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.13/bin/uvicorn", line 8, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/main.py", line 412, in main
+    run(
+    ~~~^
+        app,
+        ^^^^
+    ...<45 lines>...
+        h11_max_incomplete_event_size=h11_max_incomplete_event_size,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/main.py", line 579, in run
+    server.run()
+    ~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 69, in serve
+    await self._serve(sockets)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/server.py", line 76, in _serve
+    config.load()
+    ~~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/config.py", line 434, in load
+    self.loaded_app = import_from_string(self.app)
+                      ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/Users/manojsarya/Desktop/School_Management_Backend/main.py", line 12, in <module>
+    limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+              ^^^^^^^
+NameError: name 'Limiter' is not defined. Did you mean: 'limiter'?
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (1.26.20) or chardet (7.0.1)/charset_normalizer (3.4.5) doesn't match a supported version!
+  warnings.warn(
+INFO:     Started server process [75127]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+✅ Connected to MongoDB Atlas — DB: school_management
+INFO:     127.0.0.1:51424 - "POST /auth/staff/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:51525 - "POST /auth/staff/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:52037 - "POST /auth/staff/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52037 - "POST /fees/ HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52037 - "DELETE /staff/65f1a HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52037 - "POST /attendance/ HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:52037 - "GET /attendance/C1/export/pdf?date=2024-03-24 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52557 - "POST /auth/staff/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52557 - "PATCH /fees/123/1 HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "DELETE /staff/65f1a HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52557 - "POST /attendance/ HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:52557 - "GET /attendance/C1/export/pdf?date=2024-03-24 HTTP/1.1" 404 Not Found
