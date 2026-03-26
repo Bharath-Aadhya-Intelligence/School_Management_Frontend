@@ -98,7 +98,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
   Future<void> _exportPdf() async {
     try {
       final fileName = 'staff_salary_$_selectedYear.pdf';
-      final path = '/exports/salary/$_selectedYear/pdf';
+      final path = '/exports/salary/pdf?year=$_selectedYear';
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Generating PDF...')));
       await FileService.downloadAndShare(path, fileName);
@@ -113,7 +113,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
   Future<void> _exportExcel() async {
     try {
       final fileName = 'staff_salary_$_selectedYear.xlsx';
-      final path = '/exports/salary/$_selectedYear/excel';
+      final path = '/exports/salary/excel?year=$_selectedYear';
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Generating Excel...')));
       await FileService.downloadAndShare(path, fileName);

@@ -192,10 +192,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             tooltip: 'Export PDF',
             onPressed: () async {
               try {
-                final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
                 await FileService.downloadAndShare(
-                  '/attendance/${widget.classId}/$dateStr/export',
-                  'attendance_${widget.classId}_$dateStr.pdf',
+                  '/exports/attendance/${widget.classId}/${_selectedDate.year}/${_selectedDate.month}/pdf',
+                  'attendance_${widget.classId}_${_selectedDate.year}_${_selectedDate.month}.pdf',
                 );
               } catch (e) {
                 if (!mounted) return;
