@@ -11,7 +11,14 @@ import '../../providers/auth_provider.dart';
 class FeesScreen extends StatefulWidget {
   final String classId;
   final String className;
-  const FeesScreen({super.key, required this.classId, required this.className});
+  final bool showAppBar;
+
+  const FeesScreen({
+    super.key,
+    required this.classId,
+    required this.className,
+    this.showAppBar = true,
+  });
 
   @override
   State<FeesScreen> createState() => _FeesScreenState();
@@ -27,6 +34,14 @@ class _FeesScreenState extends State<FeesScreen> {
   void initState() {
     super.initState();
     _fetchFees();
+  }
+
+  @override
+  void didUpdateWidget(covariant FeesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.classId != widget.classId) {
+      _fetchFees();
+    }
   }
 
   Future<void> _fetchFees() async {
@@ -189,11 +204,7 @@ class _FeesScreenState extends State<FeesScreen> {
     double totalPaid = _fees.fold(0, (sum, f) => sum + f.amountPaid);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      appBar: widget.showAppBar ? AppBar(
         title: Text('${widget.className} - Fees'),
         elevation: 0,
         actions: [
@@ -212,7 +223,7 @@ class _FeesScreenState extends State<FeesScreen> {
             onPressed: _fetchFees,
           ),
         ],
-      ),
+      ) : null,
       body: Column(
         children: [
           Container(
@@ -408,11 +419,11 @@ class _FeeCard extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text('Inst ${idx + 1}', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor)),
-                              if (inst.isPaid) ...[
+                              if (inst.isPaid || inst.isPartial) ...[
                                 const SizedBox(width: 4),
                                 InkWell(
                                   onTap: () => onReceipt(fee.studentId, inst.installmentNo),
-                                  child: Icon(Icons.download_for_offline_rounded, size: 14, color: AppTheme.paidGreen),
+                                  child: Icon(Icons.download_for_offline_rounded, size: 14, color: statusColor),
                                 ),
                               ],
                             ],

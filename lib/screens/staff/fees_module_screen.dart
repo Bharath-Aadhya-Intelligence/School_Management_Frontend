@@ -43,8 +43,8 @@ class FeesModuleScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            FeesScreen(classId: classId, className: className),
-            VanFeesScreen(classId: classId, className: className),
+            FeesScreen(classId: classId, className: className, showAppBar: false),
+            VanFeesScreen(classId: classId, className: className, showAppBar: false),
           ],
         ),
       ),

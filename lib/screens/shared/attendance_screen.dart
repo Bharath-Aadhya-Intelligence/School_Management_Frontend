@@ -13,10 +13,13 @@ import '../../services/file_service.dart';
 class AttendanceScreen extends StatefulWidget {
   final String classId;
   final String className;
+  final bool showAppBar;
+
   const AttendanceScreen({
     super.key,
     required this.classId,
     required this.className,
+    this.showAppBar = true,
   });
 
   @override
@@ -37,6 +40,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void didUpdateWidget(covariant AttendanceScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.classId != widget.classId) {
+      _attendanceMap.clear();
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {
@@ -170,12 +182,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final String role = authProvider.isAdmin ? 'admin' : 'staff';
 
     return Scaffold(
-      drawer: AppDrawer(role: role, classId: widget.classId),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      drawer: widget.showAppBar ? AppDrawer(role: role, classId: widget.classId) : null,
+      appBar: widget.showAppBar ? AppBar(
         title: Text('${widget.className} - Attendance'),
         elevation: 0,
         actions: [
@@ -215,7 +223,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             },
           ),
         ],
-      ),
+      ) : null,
       body: _buildMarkAttendanceTab(),
     );
   }

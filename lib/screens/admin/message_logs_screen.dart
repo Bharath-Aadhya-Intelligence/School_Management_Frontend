@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../api/api_client.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
@@ -181,7 +182,7 @@ class _MessageLogsScreenState extends State<MessageLogsScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: const Text('WhatsApp Logs'),
         actions: [

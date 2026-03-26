@@ -11,10 +11,13 @@ import '../../providers/auth_provider.dart';
 class StudentsScreen extends StatefulWidget {
   final String classId;
   final String className;
+  final bool showAppBar;
+
   const StudentsScreen({
     super.key,
     required this.classId,
     required this.className,
+    this.showAppBar = true,
   });
 
   @override
@@ -32,6 +35,14 @@ class _StudentsScreenState extends State<StudentsScreen> {
   void initState() {
     super.initState();
     _fetchStudents();
+  }
+
+  @override
+  void didUpdateWidget(covariant StudentsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.classId != widget.classId) {
+      _fetchStudents();
+    }
   }
 
   Future<void> _fetchStudents() async {
@@ -441,12 +452,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final String role = authProvider.isAdmin ? 'admin' : 'staff';
 
     return Scaffold(
-      drawer: AppDrawer(role: role, classId: widget.classId),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      drawer: widget.showAppBar ? AppDrawer(role: role, classId: widget.classId) : null,
+      appBar: widget.showAppBar ? AppBar(
         title: Text(widget.className),
         elevation: 0,
         actions: [
@@ -458,7 +465,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
             onPressed: () => setState(() => _isAscending = !_isAscending),
           ),
         ],
-      ),
+      ) : null,
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'add_student_fab',
         onPressed: _showAddStudentDialog,

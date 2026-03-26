@@ -30,6 +30,14 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     _fetchAttendanceHistory();
   }
 
+  @override
+  void didUpdateWidget(covariant AttendanceHistoryScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.classId != widget.classId) {
+      _fetchAttendanceHistory();
+    }
+  }
+
   Future<void> _fetchAttendanceHistory() async {
     if (widget.classId.isEmpty) return;
     setState(() {

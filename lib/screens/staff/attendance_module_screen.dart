@@ -44,8 +44,8 @@ class AttendanceModuleScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            AttendanceScreen(classId: classId, className: className),
-            StudentsScreen(classId: classId, className: className),
+            AttendanceScreen(classId: classId, className: className, showAppBar: false),
+            StudentsScreen(classId: classId, className: className, showAppBar: false),
             AttendanceHistoryScreen(classId: classId),
           ],
         ),

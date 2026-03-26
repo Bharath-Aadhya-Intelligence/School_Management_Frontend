@@ -11,8 +11,14 @@ import '../../providers/auth_provider.dart';
 class VanFeesScreen extends StatefulWidget {
   final String classId;
   final String className;
-  const VanFeesScreen(
-      {super.key, required this.classId, required this.className});
+  final bool showAppBar;
+
+  const VanFeesScreen({
+    super.key,
+    required this.classId,
+    required this.className,
+    this.showAppBar = true,
+  });
 
   @override
   State<VanFeesScreen> createState() => _VanFeesScreenState();
@@ -44,6 +50,14 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
   void initState() {
     super.initState();
     _fetchVanFees();
+  }
+
+  @override
+  void didUpdateWidget(covariant VanFeesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.classId != widget.classId) {
+      _fetchVanFees();
+    }
   }
 
   Future<void> _fetchVanFees() async {
@@ -143,11 +157,7 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      appBar: widget.showAppBar ? AppBar(
         title: Text('${widget.className} - Van Fees'),
         elevation: 0,
         actions: [
@@ -178,7 +188,7 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
             ),
           ),
         ],
-      ),
+      ) : null,
       body: Column(
         children: [
           Expanded(
