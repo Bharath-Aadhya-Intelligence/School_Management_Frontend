@@ -298,6 +298,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                         ),
                                       ),
                                     ),
+                                    const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
                                         studentName,

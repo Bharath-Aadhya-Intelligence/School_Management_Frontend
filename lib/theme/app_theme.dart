@@ -104,7 +104,6 @@ class AppTheme {
           color: lightText,
         ),
         iconTheme: const IconThemeData(color: lightText),
-        centerTitle: false,
       ),
       cardTheme: CardThemeData(
         color: lightCard,
@@ -264,7 +263,6 @@ class AppTheme {
           color: darkText,
         ),
         iconTheme: const IconThemeData(color: darkText),
-        centerTitle: false,
       ),
       cardTheme: CardThemeData(
         color: darkCard,

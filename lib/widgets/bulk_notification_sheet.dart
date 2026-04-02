@@ -55,12 +55,31 @@ class _BulkNotificationSheetState extends State<BulkNotificationSheet> {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    Text(
-                      '${widget.data.absentees.length} students to be notified',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          '${_notifiedStudents.length} Notified',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.paidGreen,
+                          ),
+                        ),
+                        Text(
+                          ' • ',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                        Text(
+                          '${widget.data.absentees.length - _notifiedStudents.length} Pending',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: widget.data.absentees.length - _notifiedStudents.length > 0 
+                                ? AppTheme.unpaidRed 
+                                : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -123,6 +142,7 @@ class _BulkNotificationSheetState extends State<BulkNotificationSheet> {
                           final urlStr = student.whatsappUrl;
                           if (urlStr == null || urlStr.isEmpty) return;
 
+                          final messenger = ScaffoldMessenger.of(context);
                           try {
                             final url = Uri.parse(urlStr);
                             
@@ -135,8 +155,7 @@ class _BulkNotificationSheetState extends State<BulkNotificationSheet> {
                               }
                             }
                           } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            messenger.showSnackBar(
                               SnackBar(content: Text('Error: $e')),
                             );
                           }

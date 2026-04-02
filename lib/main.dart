@@ -13,7 +13,7 @@ import 'screens/admin/salary_screen.dart';
 import 'screens/shared/students_screen.dart';
 import 'screens/shared/fees_screen.dart';
 import 'screens/shared/van_fees_screen.dart';
-import 'screens/shared/attendance_screen.dart';
+import 'screens/shared/attendance_module_screen.dart';
 import 'screens/staff/staff_dashboard.dart';
 import 'theme/app_theme.dart';
 
@@ -102,7 +102,7 @@ class _SchoolManagementAppState extends State<SchoolManagementApp> {
             builder: (ctx, state) {
               final classId = state.pathParameters['classId']!;
               final className = state.uri.queryParameters['name'] ?? 'Class';
-              return AttendanceScreen(classId: classId, className: className);
+              return AttendanceModuleScreen(classId: classId, className: className);
             }),
         GoRoute(
             path: '/admin/staff',
@@ -138,7 +138,7 @@ class _SchoolManagementAppState extends State<SchoolManagementApp> {
             builder: (ctx, state) {
               final classId = state.uri.queryParameters['classId'] ?? '';
               final className = state.uri.queryParameters['name'] ?? 'My Class';
-              return AttendanceScreen(classId: classId, className: className);
+              return AttendanceModuleScreen(classId: classId, className: className, showBackButton: false);
             }),
       ],
     );

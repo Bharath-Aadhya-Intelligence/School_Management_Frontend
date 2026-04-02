@@ -7,7 +7,7 @@ import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/stat_card.dart';
 import 'fees_module_screen.dart';
-import 'attendance_module_screen.dart';
+import '../shared/attendance_module_screen.dart';
 import 'staff_settings_screen.dart';
 
 class StaffDashboard extends StatefulWidget {
