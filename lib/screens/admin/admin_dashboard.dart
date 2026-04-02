@@ -132,11 +132,6 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
         title: const Text('Admin Dashboard'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.message_rounded),
-            tooltip: 'WhatsApp Logs',
-            onPressed: () => context.push('/admin/logs'),
-          ),
-          IconButton(
             icon: const Icon(Icons.people_alt_outlined),
             tooltip: 'Staff Management',
             onPressed: () => widget.onActionTap(1),

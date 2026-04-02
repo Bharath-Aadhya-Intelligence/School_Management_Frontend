@@ -6,7 +6,6 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/stat_card.dart';
-import '../admin/message_logs_screen.dart';
 import 'fees_module_screen.dart';
 import 'attendance_module_screen.dart';
 import 'staff_settings_screen.dart';
@@ -500,19 +499,6 @@ class _StaffHomeViewState extends State<_StaffHomeView> {
                                     icon: Icons.fact_check_rounded,
                                     color: AppTheme.adminGreen,
                                     onTap: () => widget.onActionTap(1),
-                                  ),
-                                  _QuickActionCard(
-                                    title: 'WhatsApp Logs',
-                                    icon: Icons.chat_rounded,
-                                    color: AppTheme.staffPurple,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const MessageLogsScreen(),
-                                        ),
-                                      );
-                                    },
                                   ),
                                   _QuickActionCard(
                                     title: 'Fees',

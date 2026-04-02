@@ -14,7 +14,6 @@ import 'screens/shared/students_screen.dart';
 import 'screens/shared/fees_screen.dart';
 import 'screens/shared/van_fees_screen.dart';
 import 'screens/shared/attendance_screen.dart';
-import 'screens/admin/message_logs_screen.dart';
 import 'screens/staff/staff_dashboard.dart';
 import 'theme/app_theme.dart';
 
@@ -110,9 +109,6 @@ class _SchoolManagementAppState extends State<SchoolManagementApp> {
             builder: (ctx, _) => const StaffManagementScreen()),
         GoRoute(
             path: '/admin/salary', builder: (ctx, _) => const SalaryScreen()),
-        GoRoute(
-            path: '/admin/logs',
-            builder: (ctx, _) => const MessageLogsScreen()),
 
         // Staff Routes
         GoRoute(path: '/staff', builder: (ctx, _) => const StaffDashboard()),
