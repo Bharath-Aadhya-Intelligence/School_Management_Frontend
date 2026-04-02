@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
+
 import 'providers/theme_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
@@ -110,7 +111,8 @@ class _SchoolManagementAppState extends State<SchoolManagementApp> {
         GoRoute(
             path: '/admin/salary', builder: (ctx, _) => const SalaryScreen()),
         GoRoute(
-            path: '/admin/logs', builder: (ctx, _) => const MessageLogsScreen()),
+            path: '/admin/logs',
+            builder: (ctx, _) => const MessageLogsScreen()),
 
         // Staff Routes
         GoRoute(path: '/staff', builder: (ctx, _) => const StaffDashboard()),
