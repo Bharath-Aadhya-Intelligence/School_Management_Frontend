@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/sort_utils.dart';
+// import '../../utils/sort_utils.dart';
 import '../../services/file_service.dart';
 import '../../providers/auth_provider.dart';
 
@@ -71,7 +71,6 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
       final vanFeeList = (response as List)
           .map((json) => StudentVanFeeModel.fromJson(json))
           .toList();
-      vanFeeList.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
 
       setState(() {
         _vanFees = vanFeeList;

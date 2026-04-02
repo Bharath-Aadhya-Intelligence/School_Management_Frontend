@@ -199,12 +199,23 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
-  int get _presentCount => _attendanceMap.values
-      .where((v) => v.toLowerCase() == 'present' || v.toLowerCase() == 'p')
-      .length;
-  int get _absentCount => _attendanceMap.values
-      .where((v) => v.toLowerCase() == 'absent' || v.toLowerCase() == 'a')
-      .length;
+  int get _presentCount {
+    if (_todayAttendance != null && _attendanceMap.isEmpty) {
+      return _todayAttendance!.totalPresent;
+    }
+    return _attendanceMap.values
+        .where((v) => v.toLowerCase() == 'present' || v.toLowerCase() == 'p')
+        .length;
+  }
+
+  int get _absentCount {
+    if (_todayAttendance != null && _attendanceMap.isEmpty) {
+      return _todayAttendance!.totalAbsent;
+    }
+    return _attendanceMap.values
+        .where((v) => v.toLowerCase() == 'absent' || v.toLowerCase() == 'a')
+        .length;
+  }
 
   @override
   Widget build(BuildContext context) {

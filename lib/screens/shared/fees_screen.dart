@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/sort_utils.dart';
+// import '../../utils/sort_utils.dart';
 import '../../services/file_service.dart';
 import '../../providers/auth_provider.dart';
 
@@ -26,6 +26,7 @@ class FeesScreen extends StatefulWidget {
 
 class _FeesScreenState extends State<FeesScreen> {
   List<StudentFeeModel> _fees = [];
+  ClassFeeSummary? _summary;
   bool _isLoading = true;
   String? _error;
   bool _processing = false;
@@ -52,13 +53,11 @@ class _FeesScreenState extends State<FeesScreen> {
     try {
       final response = await ApiClient.get('/fees/${widget.classId}');
       if (!mounted) return;
-      final feeList = (response as List)
-          .map((json) => StudentFeeModel.fromJson(json))
-          .toList();
-      feeList.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
+      final classFees = ClassFeesResponse.fromJson(response);
 
       setState(() {
-        _fees = feeList;
+        _fees = classFees.students;
+        _summary = classFees.summary;
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -209,8 +208,9 @@ class _FeesScreenState extends State<FeesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double totalExpected = _fees.fold(0, (sum, f) => sum + f.totalFee);
-    double totalPaid = _fees.fold(0, (sum, f) => sum + f.amountPaid);
+    double totalExpected = _summary?.totalExpected ?? 0.0;
+    double totalPaid = _summary?.totalPaid ?? 0.0;
+    double balance = _summary?.balance ?? 0.0;
 
     return Scaffold(
       appBar: widget.showAppBar
@@ -295,8 +295,7 @@ class _FeesScreenState extends State<FeesScreen> {
                     Expanded(
                         child: _StatItem(
                             label: 'Balance',
-                            value:
-                                '₹${(totalExpected - totalPaid).toStringAsFixed(0)}',
+                            value: '₹${balance.toStringAsFixed(0)}',
                             icon: Icons.pending_rounded)),
                   ],
                 ),

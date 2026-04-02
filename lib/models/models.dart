@@ -151,6 +151,42 @@ class StudentFeeModel {
   int get paidCount => installments.where((i) => i.isPaid).length;
 }
 
+class ClassFeeSummary {
+  final double totalExpected;
+  final double totalPaid;
+  final double balance;
+
+  ClassFeeSummary({
+    required this.totalExpected,
+    required this.totalPaid,
+    required this.balance,
+  });
+
+  factory ClassFeeSummary.fromJson(Map<String, dynamic> json) => ClassFeeSummary(
+        totalExpected: (json['total_expected'] as num?)?.toDouble() ?? 0.0,
+        totalPaid: (json['total_paid'] as num?)?.toDouble() ?? 0.0,
+        balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+      );
+}
+
+class ClassFeesResponse {
+  final List<StudentFeeModel> students;
+  final ClassFeeSummary summary;
+
+  ClassFeesResponse({
+    required this.students,
+    required this.summary,
+  });
+
+  factory ClassFeesResponse.fromJson(Map<String, dynamic> json) =>
+      ClassFeesResponse(
+        students: (json['students'] as List)
+            .map((e) => StudentFeeModel.fromJson(e))
+            .toList(),
+        summary: ClassFeeSummary.fromJson(json['summary']),
+      );
+}
+
 class VanFeeRecord {
   final int month;
   final int year;
