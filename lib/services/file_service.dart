@@ -27,4 +27,22 @@ class FileService {
       rethrow;
     }
   }
+  
+  static Future<void> clearTemporaryFiles() async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      if (tempDir.existsSync()) {
+        final contents = tempDir.listSync(recursive: true);
+        for (var fileOrDir in contents) {
+          if (fileOrDir is File) {
+            await fileOrDir.delete();
+          } else if (fileOrDir is Directory) {
+            await fileOrDir.delete(recursive: true);
+          }
+        }
+      }
+    } catch (e) {
+      throw Exception('Failed to clear local data: $e');
+    }
+  }
 }
