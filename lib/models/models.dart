@@ -353,3 +353,52 @@ class AttendanceSummary {
         totalAbsent: json['total_absent'],
       );
 }
+
+class AbsenteeWhatsAppInfo {
+  final String studentName;
+  final String parentName;
+  final String contact;
+  final String? message;
+  final String? whatsappUrl;
+
+  AbsenteeWhatsAppInfo({
+    required this.studentName,
+    required this.parentName,
+    required this.contact,
+    this.message,
+    this.whatsappUrl,
+  });
+
+  factory AbsenteeWhatsAppInfo.fromJson(Map<String, dynamic> json) =>
+      AbsenteeWhatsAppInfo(
+        studentName: json['student_name'],
+        parentName: json['parent_name'],
+        contact: json['contact'],
+        message: json['message'],
+        whatsappUrl: json['whatsapp_url'],
+      );
+}
+
+class WhatsAppDataResponse {
+  final String classId;
+  final String date;
+  final String messageTemplate;
+  final List<AbsenteeWhatsAppInfo> absentees;
+
+  WhatsAppDataResponse({
+    required this.classId,
+    required this.date,
+    required this.messageTemplate,
+    required this.absentees,
+  });
+
+  factory WhatsAppDataResponse.fromJson(Map<String, dynamic> json) =>
+      WhatsAppDataResponse(
+        classId: json['class_id'],
+        date: json['date'],
+        messageTemplate: json['message_template'],
+        absentees: (json['absentees'] as List)
+            .map((e) => AbsenteeWhatsAppInfo.fromJson(e))
+            .toList(),
+      );
+}

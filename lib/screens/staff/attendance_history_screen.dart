@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/sort_utils.dart';
 import 'package:intl/intl.dart';
 import '../../services/whatsapp_service.dart';
+import '../../widgets/bulk_notification_sheet.dart';
 
 class AttendanceHistoryScreen extends StatefulWidget {
   final String classId;
@@ -85,6 +86,41 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       });
     } catch (e) {
       debugPrint('Error fetching students: $e');
+    }
+  }
+
+  Future<void> _showBulkNotificationSheet() async {
+    setState(() => _isLoading = true);
+    try {
+      final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+      final json = await ApiClient.get('/attendance/${widget.classId}/$dateStr/whatsapp-data');
+      final data = WhatsAppDataResponse.fromJson(json);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (data.absentees.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No absentees to notify.')),
+        );
+        return;
+      }
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => BulkNotificationSheet(
+          data: data,
+          date: _selectedDate,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
   }
 
@@ -203,6 +239,21 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                 value: '$_totalAbsent',
                                 color: AppTheme.unpaidRed,
                               ),
+                              if (_totalAbsent > 0) ...[
+                                const Spacer(),
+                                TextButton.icon(
+                                  onPressed: _showBulkNotificationSheet,
+                                  icon: const Icon(Icons.chat_rounded, size: 20),
+                                  label: const Text('Notify All'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: AppTheme.paidGreen,
+                                    textStyle: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),

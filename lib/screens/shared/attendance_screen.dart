@@ -9,6 +9,7 @@ import '../../utils/sort_utils.dart';
 import '../../widgets/app_drawer.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/file_service.dart';
+import '../../widgets/bulk_notification_sheet.dart';
 
 class AttendanceScreen extends StatefulWidget {
   final String classId;
@@ -102,6 +103,32 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
+  Future<void> _showWhatsAppPrompt() async {
+    if (_absentCount == 0) return;
+
+    try {
+      final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+      final json = await ApiClient.get(
+        '/attendance/${widget.classId}/$dateStr/whatsapp-data',
+      );
+      final data = WhatsAppDataResponse.fromJson(json);
+
+      if (!mounted) return;
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => BulkNotificationSheet(
+          data: data,
+          date: _selectedDate,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error fetching WhatsApp data: $e');
+    }
+  }
+
   Future<void> _submitAttendance() async {
     if (_students.isEmpty) return;
     setState(() => _submitting = true);
@@ -146,6 +173,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
               ],
             ),
+            action: _absentCount > 0
+                ? SnackBarAction(
+                    label: 'NOTIFY',
+                    textColor: Colors.white,
+                    onPressed: _showWhatsAppPrompt,
+                  )
+                : null,
             backgroundColor: AppTheme.paidGreen,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
