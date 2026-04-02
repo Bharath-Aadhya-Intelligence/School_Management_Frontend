@@ -288,16 +288,18 @@ class AttendanceRecord {
   final String studentId;
   final String? studentName;
   final String? rollNo;
+  final String? contact;
   String status; // 'present' | 'absent'
 
   AttendanceRecord(
-      {required this.studentId, this.studentName, this.rollNo, required this.status});
+      {required this.studentId, this.studentName, this.rollNo, this.contact, required this.status});
 
   factory AttendanceRecord.fromJson(Map<String, dynamic> json) =>
       AttendanceRecord(
         studentId: json['student_id'],
         studentName: json['student_name'],
         rollNo: json['roll_no'],
+        contact: json['contact'],
         status: json['status']?.toString().toLowerCase() ?? 'absent',
       );
 

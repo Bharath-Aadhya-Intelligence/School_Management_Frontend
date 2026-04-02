@@ -210,7 +210,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       if (nameCtrl.text.isEmpty ||
                           rollCtrl.text.isEmpty ||
                           parentCtrl.text.isEmpty ||
-                          contactCtrl.text.isEmpty) return;
+                          contactCtrl.text.isEmpty) {
+                        return;
+                      }
                       Navigator.pop(ctx);
                       try {
                         await ApiClient.post('/students/', {
@@ -234,7 +236,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           );
                         }
                       } on ApiException catch (e) {
-                          if (mounted) {
+                        if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text(e.message),
                               backgroundColor: AppTheme.unpaidRed));
@@ -452,20 +454,26 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final String role = authProvider.isAdmin ? 'admin' : 'staff';
 
     return Scaffold(
-      drawer: widget.showAppBar ? AppDrawer(role: role, classId: widget.classId) : null,
-      appBar: widget.showAppBar ? AppBar(
-        title: Text(widget.className),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(
-              _isAscending ? Icons.sort_by_alpha_rounded : Icons.sort_rounded,
-            ),
-            tooltip: _isAscending ? 'Sort Ascending' : 'Sort Descending',
-            onPressed: () => setState(() => _isAscending = !_isAscending),
-          ),
-        ],
-      ) : null,
+      drawer: widget.showAppBar
+          ? AppDrawer(role: role, classId: widget.classId)
+          : null,
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: Text(widget.className),
+              elevation: 0,
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    _isAscending
+                        ? Icons.sort_by_alpha_rounded
+                        : Icons.sort_rounded,
+                  ),
+                  tooltip: _isAscending ? 'Sort Ascending' : 'Sort Descending',
+                  onPressed: () => setState(() => _isAscending = !_isAscending),
+                ),
+              ],
+            )
+          : null,
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'add_student_fab',
         onPressed: _showAddStudentDialog,

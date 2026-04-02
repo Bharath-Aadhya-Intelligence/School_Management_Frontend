@@ -89,7 +89,8 @@ class _FeesScreenState extends State<FeesScreen> {
     }
   }
 
-  Future<void> _updatePayment(String studentId, int installmentNo, double amount) async {
+  Future<void> _updatePayment(
+      String studentId, int installmentNo, double amount) async {
     if (_processing) return;
     setState(() => _processing = true);
     try {
@@ -114,15 +115,17 @@ class _FeesScreenState extends State<FeesScreen> {
 
   void _downloadReceipt(String studentId, int installmentNo) async {
     try {
-      final fileName = 'receipt_${studentId.substring(0, 4)}_inst$installmentNo.pdf';
+      final fileName =
+          'receipt_${studentId.substring(0, 4)}_inst$installmentNo.pdf';
       final path = '/exports/receipt/$studentId/$installmentNo';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Downloading Receipt...')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Downloading Receipt...')));
       await FileService.downloadAndShare(path, fileName);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Receipt download failed: $e'), backgroundColor: Colors.red));
+            content: Text('Receipt download failed: $e'),
+            backgroundColor: Colors.red));
       }
     }
   }
@@ -131,8 +134,8 @@ class _FeesScreenState extends State<FeesScreen> {
     try {
       final fileName = 'fees_${widget.className}.pdf';
       final path = '/exports/fees/${widget.classId}/pdf';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Generating PDF Report...')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Generating PDF Report...')));
       await FileService.downloadAndShare(path, fileName);
     } catch (e) {
       if (mounted) {
@@ -146,8 +149,8 @@ class _FeesScreenState extends State<FeesScreen> {
     try {
       final fileName = 'fees_${widget.className}.xlsx';
       final path = '/exports/fees/${widget.classId}/excel';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Generating Excel Report...')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Generating Excel Report...')));
       await FileService.downloadAndShare(path, fileName);
     } catch (e) {
       if (mounted) {
@@ -158,18 +161,19 @@ class _FeesScreenState extends State<FeesScreen> {
   }
 
   void _showPaymentDialog(StudentFeeModel fee, FeeInstallment inst) {
-    final controller = TextEditingController(text: inst.amountPaid.toStringAsFixed(0));
+    final controller =
+        TextEditingController(text: inst.amountPaid.toStringAsFixed(0));
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Update Installment ${inst.installmentNo}', 
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+        title: Text('Update Installment ${inst.installmentNo}',
+            style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Target Amount: ₹${inst.targetAmount.toStringAsFixed(2)}',
-              style: GoogleFonts.inter(color: AppTheme.textSecondary)),
+                style: GoogleFonts.inter(color: AppTheme.textSecondary)),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
@@ -183,15 +187,19 @@ class _FeesScreenState extends State<FeesScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final amount = double.tryParse(controller.text) ?? 0.0;
               Navigator.pop(context);
               _updatePayment(fee.studentId, inst.installmentNo, amount);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.adminGreen),
-            child: const Text('Update Payment', style: TextStyle(color: Colors.white)),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppTheme.adminGreen),
+            child: const Text('Update Payment',
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -204,26 +212,28 @@ class _FeesScreenState extends State<FeesScreen> {
     double totalPaid = _fees.fold(0, (sum, f) => sum + f.amountPaid);
 
     return Scaffold(
-      appBar: widget.showAppBar ? AppBar(
-        title: Text('${widget.className} - Fees'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf_rounded),
-            tooltip: 'Export Report',
-            onPressed: _downloadPdf,
-          ),
-          IconButton(
-            icon: const Icon(Icons.table_chart_rounded),
-            tooltip: 'Export Excel',
-            onPressed: _downloadExcel,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: _fetchFees,
-          ),
-        ],
-      ) : null,
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: Text('${widget.className} - Fees'),
+              elevation: 0,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  tooltip: 'Export Report',
+                  onPressed: _downloadPdf,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.table_chart_rounded),
+                  tooltip: 'Export Excel',
+                  onPressed: _downloadExcel,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded),
+                  onPressed: _fetchFees,
+                ),
+              ],
+            )
+          : null,
       body: Column(
         children: [
           Container(
@@ -249,12 +259,20 @@ class _FeesScreenState extends State<FeesScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Financial Overview', 
-                      style: GoogleFonts.inter(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                    Text('Financial Overview',
+                        style: GoogleFonts.inter(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8)),
-                      child: Text('${_fees.length} Students', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Text('${_fees.length} Students',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 11)),
                     ),
                   ],
                 ),
@@ -276,7 +294,8 @@ class _FeesScreenState extends State<FeesScreen> {
                     Expanded(
                         child: _StatItem(
                             label: 'Balance',
-                            value: '₹${(totalExpected - totalPaid).toStringAsFixed(0)}',
+                            value:
+                                '₹${(totalExpected - totalPaid).toStringAsFixed(0)}',
                             icon: Icons.pending_rounded)),
                   ],
                 ),
@@ -306,10 +325,15 @@ class _FeesScreenState extends State<FeesScreen> {
                         : ListView.separated(
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                             itemCount: _fees.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
                             itemBuilder: (ctx, i) => _FeeCard(
                                 fee: _fees[i],
-                                onAction: Provider.of<AuthProvider>(context, listen: false).isAdmin ? _showPaymentDialog : null,
+                                onAction: Provider.of<AuthProvider>(context,
+                                            listen: false)
+                                        .isAdmin
+                                    ? _showPaymentDialog
+                                    : null,
                                 onReceipt: _downloadReceipt,
                                 processing: _processing),
                           ),
@@ -324,7 +348,8 @@ class _StatItem extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
-  const _StatItem({required this.label, required this.value, required this.icon});
+  const _StatItem(
+      {required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -346,12 +371,11 @@ class _FeeCard extends StatelessWidget {
   final Function(String, int) onReceipt;
   final bool processing;
 
-  const _FeeCard({
-    required this.fee, 
-    required this.onAction, 
-    required this.onReceipt,
-    required this.processing
-  });
+  const _FeeCard(
+      {required this.fee,
+      required this.onAction,
+      required this.onReceipt,
+      required this.processing});
 
   @override
   Widget build(BuildContext context) {
@@ -362,9 +386,13 @@ class _FeeCard extends StatelessWidget {
         color: isDark ? AppTheme.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
+          BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4))
         ],
-        border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderLight),
+        border: Border.all(
+            color: isDark ? AppTheme.darkBorder : AppTheme.borderLight),
       ),
       child: Column(
         children: [
@@ -374,37 +402,56 @@ class _FeeCard extends StatelessWidget {
               backgroundColor: AppTheme.primaryBlue.withOpacity(0.12),
               child: Text(
                 fee.rollNo.isNotEmpty ? fee.rollNo : '?',
-                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
+                style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryBlue),
               ),
             ),
             const SizedBox(width: 10),
-            Expanded(child: Text(fee.studentName, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600))),
+            Expanded(
+                child: Text(fee.studentName,
+                    style: GoogleFonts.inter(
+                        fontSize: 15, fontWeight: FontWeight.w600))),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('Balance: ₹${fee.balance.toStringAsFixed(0)}', 
-                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: fee.balance > 0 ? AppTheme.unpaidRed : AppTheme.paidGreen)),
-                Text('Total: ₹${fee.totalFee.toStringAsFixed(0)}', 
-                  style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary)),
+                Text('Balance: ₹${fee.balance.toStringAsFixed(0)}',
+                    style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: fee.balance > 0
+                            ? AppTheme.unpaidRed
+                            : AppTheme.paidGreen)),
+                Text('Total: ₹${fee.totalFee.toStringAsFixed(0)}',
+                    style: GoogleFonts.inter(
+                        fontSize: 10, color: AppTheme.textSecondary)),
               ],
             ),
           ]),
           const Divider(height: 24),
           Row(
             children: List.generate(3, (idx) {
-              final inst = fee.installments.firstWhere((i) => i.installmentNo == idx + 1,
-                  orElse: () => FeeInstallment(installmentNo: idx + 1, status: 'unpaid'));
-              
+              final inst = fee.installments.firstWhere(
+                  (i) => i.installmentNo == idx + 1,
+                  orElse: () =>
+                      FeeInstallment(installmentNo: idx + 1, status: 'unpaid'));
+
               Color statusColor;
-              if (inst.isPaid) statusColor = AppTheme.paidGreen;
-              else if (inst.isPartial) statusColor = Colors.orange;
-              else statusColor = AppTheme.unpaidRed;
+              if (inst.isPaid) {
+                statusColor = AppTheme.paidGreen;
+              } else if (inst.isPartial)
+                statusColor = Colors.orange;
+              else
+                statusColor = AppTheme.unpaidRed;
 
               return Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(right: idx < 2 ? 8.0 : 0),
                   child: InkWell(
-                    onTap: (processing || onAction == null) ? null : () => onAction!(fee, inst),
+                    onTap: (processing || onAction == null)
+                        ? null
+                        : () => onAction!(fee, inst),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -418,19 +465,31 @@ class _FeeCard extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Inst ${idx + 1}', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor)),
+                              Text('Inst ${idx + 1}',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: statusColor)),
                               if (inst.isPaid || inst.isPartial) ...[
                                 const SizedBox(width: 4),
                                 InkWell(
-                                  onTap: () => onReceipt(fee.studentId, inst.installmentNo),
-                                  child: Icon(Icons.download_for_offline_rounded, size: 14, color: statusColor),
+                                  onTap: () => onReceipt(
+                                      fee.studentId, inst.installmentNo),
+                                  child: Icon(
+                                      Icons.download_for_offline_rounded,
+                                      size: 14,
+                                      color: statusColor),
                                 ),
                               ],
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text('₹${inst.amountPaid.toStringAsFixed(0)}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800)),
-                          Text('of ${inst.targetAmount.toStringAsFixed(0)}', style: GoogleFonts.inter(fontSize: 9, color: AppTheme.textSecondary)),
+                          Text('₹${inst.amountPaid.toStringAsFixed(0)}',
+                              style: GoogleFonts.inter(
+                                  fontSize: 12, fontWeight: FontWeight.w800)),
+                          Text('of ${inst.targetAmount.toStringAsFixed(0)}',
+                              style: GoogleFonts.inter(
+                                  fontSize: 9, color: AppTheme.textSecondary)),
                         ],
                       ),
                     ),

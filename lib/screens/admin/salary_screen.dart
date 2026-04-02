@@ -71,9 +71,10 @@ class _SalaryScreenState extends State<SalaryScreen> {
       if (!mounted) return;
       await _fetchSalaries();
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+      }
     } finally {
       if (mounted) setState(() => _toggling = false);
     }
@@ -84,14 +85,16 @@ class _SalaryScreenState extends State<SalaryScreen> {
       await ApiClient.post('/salary/init/$staffId/$_selectedYear', {});
       if (!mounted) return;
       _fetchSalaries();
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Salary records initialized'),
             backgroundColor: AppTheme.paidGreen));
+      }
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+      }
     }
   }
 
@@ -339,9 +342,7 @@ class _SalaryCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isPaid
                           ? AppTheme.paidGreen.withOpacity(0.12)
-                          : (isDark
-                              ? AppTheme.darkCard
-                              : AppTheme.lightBg),
+                          : (isDark ? AppTheme.darkCard : AppTheme.lightBg),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isPaid

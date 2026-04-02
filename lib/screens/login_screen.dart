@@ -236,10 +236,12 @@ class _LoginScreenState extends State<LoginScreen>
                                         size: 20),
                                   ),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty)
+                                    if (v == null || v.isEmpty) {
                                       return 'Email is required';
-                                    if (!v.contains('@'))
+                                    }
+                                    if (!v.contains('@')) {
                                       return 'Enter a valid email';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -279,8 +281,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     ),
                                   ),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty)
+                                    if (v == null || v.isEmpty) {
                                       return 'Password is required';
+                                    }
                                     return null;
                                   },
                                 ),
