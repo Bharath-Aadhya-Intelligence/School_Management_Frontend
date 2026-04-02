@@ -6,7 +6,6 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/sort_utils.dart';
-import '../../widgets/app_drawer.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/file_service.dart';
 import '../../widgets/bulk_notification_sheet.dart';
@@ -212,11 +211,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final String role = authProvider.isAdmin ? 'admin' : 'staff';
-
     return Scaffold(
-      drawer: widget.showAppBar ? AppDrawer(role: role, classId: widget.classId) : null,
       appBar: widget.showAppBar ? AppBar(
         title: Text('${widget.className} - Attendance'),
         elevation: 0,

@@ -20,6 +20,7 @@ class AttendanceModuleScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

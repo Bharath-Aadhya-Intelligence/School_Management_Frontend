@@ -419,6 +419,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Staff Management'),
         actions: [
           IconButton(

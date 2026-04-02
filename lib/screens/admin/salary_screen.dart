@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/app_drawer.dart';
+import '../../theme/app_theme.dart';
 import '../../services/file_service.dart';
 
 class SalaryScreen extends StatefulWidget {
@@ -132,6 +132,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Staff Salary'),
         actions: [
           IconButton(

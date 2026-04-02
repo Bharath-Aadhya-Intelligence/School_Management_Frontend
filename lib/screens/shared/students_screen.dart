@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/sort_utils.dart';
-import '../../widgets/app_drawer.dart';
-import '../../providers/auth_provider.dart';
 
 class StudentsScreen extends StatefulWidget {
   final String classId;
@@ -450,13 +447,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
   @override
   Widget build(BuildContext context) {
     final filtered = _filtered;
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final String role = authProvider.isAdmin ? 'admin' : 'staff';
 
     return Scaffold(
-      drawer: widget.showAppBar
-          ? AppDrawer(role: role, classId: widget.classId)
-          : null,
       appBar: widget.showAppBar
           ? AppBar(
               title: Text(widget.className),
