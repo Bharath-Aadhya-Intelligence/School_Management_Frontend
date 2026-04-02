@@ -1,38 +1,32 @@
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+import '../api/api_client.dart';
+import '../models/models.dart';
 
 class WhatsAppService {
-  /// Launches WhatsApp with a pre-filled message for student absence.
-  /// 
-  /// [contact] The phone number (including country code, e.g., '919876543210').
-  /// [studentName] The name of the student.
-  /// [rollNo] The roll number of the student.
-  /// [date] The date of absence.
+  /// Launches WhatsApp using a backend-generated URL for student absence.
   static Future<void> sendAbsenceMessage({
-    required String contact,
-    required String studentName,
-    String? rollNo,
+    required String classId,
+    required String studentId,
     required DateTime date,
   }) async {
-    final dateStr = DateFormat('dd-MM-yyyy').format(date);
-    final rollStr = (rollNo != null && rollNo.isNotEmpty) ? ' (Roll No: $rollNo)' : '';
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
     
-    final message = 'Dear Parent, your child $studentName$rollStr was absent from school today ($dateStr). Regards, School Management.';
+    // Fetch formatted message and URL from backend to ensure consistent business logic
+    final json = await ApiClient.get('/attendance/$classId/$dateStr/$studentId/whatsapp');
+    final data = AbsenteeWhatsAppInfo.fromJson(json);
     
-    // Clean contact number: remove spaces, dashes, etc.
-    String cleanContact = contact.replaceAll(RegExp(r'[^0-9]'), '');
-    
-    // Ensure it has a country code. Defaulting to 91 (India) if it's 10 digits.
-    if (cleanContact.length == 10) {
-      cleanContact = '91$cleanContact';
+    final urlStr = data.whatsappUrl;
+    if (urlStr == null || urlStr.isEmpty) {
+      throw Exception('Backend failed to generate WhatsApp URL');
     }
 
-    final url = Uri.parse('https://wa.me/$cleanContact?text=${Uri.encodeComponent(message)}');
+    final url = Uri.parse(urlStr);
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      throw Exception('Could not launch WhatsApp for $cleanContact');
+      throw Exception('Could not launch WhatsApp');
     }
   }
 }

@@ -60,11 +60,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     try {
       final data = await ApiClient.get('/students/${widget.classId}');
       if (!mounted) return;
-      final students = (data as List)
-          .map((e) => StudentModel.fromJson(e))
-          .where((s) => s.isActive)
-          .toList();
-      students.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
+      final students =
+          (data as List).map((e) => StudentModel.fromJson(e)).toList();
       setState(() {
         _students = students;
         _loadingStudents = false;

@@ -4,7 +4,6 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
-import '../../utils/sort_utils.dart';
 
 class StudentsScreen extends StatefulWidget {
   final String classId;
@@ -53,7 +52,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
       if (!mounted) return;
       final students =
           (data as List).map((e) => StudentModel.fromJson(e)).toList();
-      students.sort((a, b) => SortUtils.compareNatural(a.rollNo, b.rollNo));
       setState(() {
         _students = students;
         _isLoading = false;

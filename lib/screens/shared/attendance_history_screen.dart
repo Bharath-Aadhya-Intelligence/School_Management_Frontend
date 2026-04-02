@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/sort_utils.dart';
 import 'package:intl/intl.dart';
 import '../../services/whatsapp_service.dart';
 import '../../widgets/bulk_notification_sheet.dart';
@@ -25,12 +24,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   String? _error;
   int _totalPresent = 0;
   int _totalAbsent = 0;
-  Map<String, String> _studentContacts = {};
 
   @override
   void initState() {
     super.initState();
-    _fetchStudents();
     _fetchAttendanceHistory();
   }
 
@@ -38,7 +35,6 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   void didUpdateWidget(covariant AttendanceHistoryScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.classId != widget.classId) {
-      _fetchStudents();
       _fetchAttendanceHistory();
     }
   }
@@ -60,7 +56,6 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
       setState(() {
         _attendanceRecords = history.records;
-        _attendanceRecords.sort((a, b) => SortUtils.compareNatural(a.rollNo ?? '', b.rollNo ?? ''));
         _totalPresent = history.totalPresent;
         _totalAbsent = history.totalAbsent;
         _isLoading = false;
@@ -75,19 +70,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     }
   }
 
-  Future<void> _fetchStudents() async {
-    if (widget.classId.isEmpty) return;
-    try {
-      final data = await ApiClient.get('/students/${widget.classId}');
-      final students = (data as List).map((e) => StudentModel.fromJson(e)).toList();
-      if (!mounted) return;
-      setState(() {
-        _studentContacts = {for (var s in students) s.studentId: s.contact};
-      });
-    } catch (e) {
-      debugPrint('Error fetching students: $e');
-    }
-  }
+
 
   Future<void> _showBulkNotificationSheet() async {
     setState(() => _isLoading = true);
@@ -338,18 +321,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                           size: 24,
                                         ),
                                         onPressed: () async {
-                                          final contact = record.contact ?? _studentContacts[record.studentId];
-                                          if (contact == null || contact.isEmpty) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text('Contact Number Not Found')),
-                                            );
-                                            return;
-                                          }
                                           try {
                                             await WhatsAppService.sendAbsenceMessage(
-                                              contact: contact,
-                                              studentName: studentName,
-                                              rollNo: rollNo,
+                                              classId: widget.classId,
+                                              studentId: record.studentId,
                                               date: _selectedDate,
                                             );
                                           } catch (e) {
