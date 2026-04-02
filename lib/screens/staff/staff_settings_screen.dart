@@ -171,9 +171,13 @@ class StaffSettingsScreen extends StatelessWidget {
       await FileService.downloadAndShare(path, fileName);
     } catch (e) {
       if (context.mounted) {
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Export failed: $e'), backgroundColor: Colors.red),
+            content: Text(errorMsg),
+            backgroundColor: AppTheme.unpaidRed,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -196,9 +200,13 @@ class StaffSettingsScreen extends StatelessWidget {
       await FileService.downloadAndShare(path, fileName);
     } catch (e) {
       if (context.mounted) {
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Export failed: $e'), backgroundColor: Colors.red),
+            content: Text(errorMsg),
+            backgroundColor: AppTheme.unpaidRed,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }

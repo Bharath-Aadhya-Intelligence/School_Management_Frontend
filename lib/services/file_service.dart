@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
@@ -21,7 +22,14 @@ class FileService {
           subject: fileName,
         );
       } else {
-        throw Exception('Failed to download file: ${response.statusCode}');
+        String message = 'Failed to download file: ${response.statusCode}';
+        try {
+          final body = jsonDecode(response.body);
+          if (body is Map && body.containsKey('detail')) {
+            message = body['detail'];
+          }
+        } catch (_) {}
+        throw Exception(message);
       }
     } catch (e) {
       rethrow;
