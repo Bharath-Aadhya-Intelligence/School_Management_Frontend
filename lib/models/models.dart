@@ -239,6 +239,43 @@ class StudentVanFeeModel {
       );
 }
 
+class ClassVanFeeSummary {
+  final double totalExpected;
+  final double totalPaid;
+  final double balance;
+
+  ClassVanFeeSummary({
+    required this.totalExpected,
+    required this.totalPaid,
+    required this.balance,
+  });
+
+  factory ClassVanFeeSummary.fromJson(Map<String, dynamic> json) =>
+      ClassVanFeeSummary(
+        totalExpected: (json['total_expected'] as num?)?.toDouble() ?? 0.0,
+        totalPaid: (json['total_paid'] as num?)?.toDouble() ?? 0.0,
+        balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+      );
+}
+
+class ClassVanFeeResponse {
+  final List<StudentVanFeeModel> students;
+  final ClassVanFeeSummary summary;
+
+  ClassVanFeeResponse({
+    required this.students,
+    required this.summary,
+  });
+
+  factory ClassVanFeeResponse.fromJson(Map<String, dynamic> json) =>
+      ClassVanFeeResponse(
+        students: (json['students'] as List)
+            .map((e) => StudentVanFeeModel.fromJson(e))
+            .toList(),
+        summary: ClassVanFeeSummary.fromJson(json['summary']),
+      );
+}
+
 class StaffModel {
   final String staffId;
   final String name;
@@ -308,16 +345,54 @@ class StaffSalaryModel {
 
   factory StaffSalaryModel.fromJson(Map<String, dynamic> json) =>
       StaffSalaryModel(
-        staffId: json['staff_id'],
-        staffName: json['staff_name'],
-        designation: json['designation'],
-        monthlySalary: (json['monthly_salary'] as num).toDouble(),
-        records: (json['records'] as List)
-            .map((e) => SalaryRecord.fromJson(e))
-            .toList(),
+        staffId: json['staff_id'] ?? '',
+        staffName: json['staff_name'] ?? '',
+        designation: json['designation'] ?? '',
+        monthlySalary: (json['monthly_salary'] as num?)?.toDouble() ?? 0.0,
+        records: (json['records'] as List?)
+                ?.map((e) => SalaryRecord.fromJson(e))
+                .toList() ??
+            [],
       );
 
   int get paidCount => records.where((r) => r.isPaid).length;
+}
+
+class YearlySalarySummary {
+  final double totalExpected;
+  final double totalPaid;
+  final double balance;
+
+  YearlySalarySummary({
+    required this.totalExpected,
+    required this.totalPaid,
+    required this.balance,
+  });
+
+  factory YearlySalarySummary.fromJson(Map<String, dynamic> json) =>
+      YearlySalarySummary(
+        totalExpected: (json['total_expected'] as num?)?.toDouble() ?? 0.0,
+        totalPaid: (json['total_paid'] as num?)?.toDouble() ?? 0.0,
+        balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+      );
+}
+
+class YearlySalaryResponse {
+  final List<StaffSalaryModel> staffRecords;
+  final YearlySalarySummary summary;
+
+  YearlySalaryResponse({
+    required this.staffRecords,
+    required this.summary,
+  });
+
+  factory YearlySalaryResponse.fromJson(Map<String, dynamic> json) =>
+      YearlySalaryResponse(
+        staffRecords: (json['staff_records'] as List)
+            .map((e) => StaffSalaryModel.fromJson(e))
+            .toList(),
+        summary: YearlySalarySummary.fromJson(json['summary']),
+      );
 }
 
 class AttendanceRecord {

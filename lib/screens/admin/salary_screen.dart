@@ -15,6 +15,7 @@ class SalaryScreen extends StatefulWidget {
 
 class _SalaryScreenState extends State<SalaryScreen> {
   List<StaffSalaryModel> _salaries = [];
+  YearlySalarySummary? _summary;
   bool _isLoading = true;
   String? _error;
   int _selectedYear = DateTime.now().year;
@@ -47,12 +48,12 @@ class _SalaryScreenState extends State<SalaryScreen> {
       _error = null;
     });
     try {
-      final data = await ApiClient.get('/salary/');
+      final response = await ApiClient.get('/salary/$_selectedYear');
       if (!mounted) return;
+      final salaryResponse = YearlySalaryResponse.fromJson(response);
       setState(() {
-        _salaries =
-            (data as List).map((e) => StaffSalaryModel.fromJson(e)).toList();
-        _salaries.sort((a, b) => a.staffName.compareTo(b.staffName));
+        _salaries = salaryResponse.staffRecords;
+        _summary = salaryResponse.summary;
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -130,9 +131,14 @@ class _SalaryScreenState extends State<SalaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double totalExpected = _summary?.totalExpected ?? 0.0;
+    double totalPaid = _summary?.totalPaid ?? 0.0;
+    double balance = _summary?.balance ?? 0.0;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Staff Salary'),
+        elevation: 0,
         actions: [
           IconButton(
               icon: const Icon(Icons.picture_as_pdf_rounded),
@@ -191,40 +197,114 @@ class _SalaryScreenState extends State<SalaryScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.error_outline_rounded,
-                      size: 64, color: AppTheme.unpaidRed),
-                  const SizedBox(height: 16),
-                  Text(_error!),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                      onPressed: _fetchSalaries, child: const Text('Retry')),
-                ]))
-              : _salaries.isEmpty
-                  ? const EmptyState(
-                      icon: Icons.payments_outlined,
-                      title: 'No Salary Records',
-                      subtitle: 'Add staff members first to track salaries')
-                  : RefreshIndicator(
-                      onRefresh: _fetchSalaries,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _salaries.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (ctx, i) => _SalaryCard(
-                          salary: _salaries[i],
-                          selectedYear: _selectedYear,
-                          monthNames: _monthNames,
-                          onToggle: _toggleSalary,
-                          onInit: _initSalary,
-                          isToggling: _toggling,
-                        ),
-                      ),
+      body: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF059669), Color(0xFF10B981)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF059669).withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Salary Overview ($_selectedYear)',
+                        style: GoogleFonts.inter(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Text('${_salaries.length} Staff Members',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 11)),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                        child: _StatItem(
+                            label: 'Expected',
+                            value: '₹${totalExpected.toStringAsFixed(0)}',
+                            icon: Icons.payments_rounded)),
+                    Container(width: 1, height: 40, color: Colors.white24),
+                    Expanded(
+                        child: _StatItem(
+                            label: 'Paid',
+                            value: '₹${totalPaid.toStringAsFixed(0)}',
+                            icon: Icons.check_circle_rounded)),
+                    Container(width: 1, height: 40, color: Colors.white24),
+                    Expanded(
+                        child: _StatItem(
+                            label: 'Balance',
+                            value: '₹${balance.toStringAsFixed(0)}',
+                            icon: Icons.pending_rounded)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.error_outline_rounded,
+                            size: 64, color: AppTheme.unpaidRed),
+                        const SizedBox(height: 16),
+                        Text(_error!),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                            onPressed: _fetchSalaries,
+                            child: const Text('Retry')),
+                      ]))
+                    : _salaries.isEmpty
+                        ? const EmptyState(
+                            icon: Icons.payments_outlined,
+                            title: 'No Salary Records',
+                            subtitle:
+                                'Add staff members first to track salaries')
+                        : RefreshIndicator(
+                            onRefresh: _fetchSalaries,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                              itemCount: _salaries.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (ctx, i) => _SalaryCard(
+                                salary: _salaries[i],
+                                selectedYear: _selectedYear,
+                                monthNames: _monthNames,
+                                onToggle: _toggleSalary,
+                                onInit: _initSalary,
+                                isToggling: _toggling,
+                              ),
+                            ),
+                          ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -381,5 +461,25 @@ class _SalaryCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  const _StatItem(
+      {required this.label, required this.value, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Icon(icon, color: Colors.white70, size: 18),
+      const SizedBox(height: 6),
+      Text(value,
+          style: GoogleFonts.inter(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+      Text(label,
+          style: GoogleFonts.inter(color: Colors.white60, fontSize: 10)),
+    ]);
   }
 }

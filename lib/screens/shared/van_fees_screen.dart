@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
-// import '../../utils/sort_utils.dart';
 import '../../services/file_service.dart';
 import '../../providers/auth_provider.dart';
 
@@ -26,6 +25,7 @@ class VanFeesScreen extends StatefulWidget {
 
 class _VanFeesScreenState extends State<VanFeesScreen> {
   List<StudentVanFeeModel> _vanFees = [];
+  ClassVanFeeSummary? _summary;
   bool _isLoading = true;
   String? _error;
   int _selectedYear = DateTime.now().year;
@@ -68,12 +68,11 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
     try {
       final response = await ApiClient.get('/van-fees/${widget.classId}');
       if (!mounted) return;
-      final vanFeeList = (response as List)
-          .map((json) => StudentVanFeeModel.fromJson(json))
-          .toList();
+      final classVanFees = ClassVanFeeResponse.fromJson(response);
 
       setState(() {
-        _vanFees = vanFeeList;
+        _vanFees = classVanFees.students;
+        _summary = classVanFees.summary;
         _isLoading = false;
       });
     } on ApiException catch (e) {
@@ -155,41 +154,113 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double totalExpected = _summary?.totalExpected ?? 0.0;
+    double totalPaid = _summary?.totalPaid ?? 0.0;
+    double balance = _summary?.balance ?? 0.0;
+
     return Scaffold(
-      appBar: widget.showAppBar ? AppBar(
-        title: Text('${widget.className} - Van Fees'),
-        elevation: 0,
-        actions: [
-          IconButton(
-              icon: const Icon(Icons.picture_as_pdf_rounded),
-              tooltip: 'Export PDF',
-              onPressed: _downloadPdf),
-          IconButton(
-              icon: const Icon(Icons.table_chart_rounded),
-              tooltip: 'Export Excel',
-              onPressed: _downloadExcel),
-          GestureDetector(
-            onTap: _showYearSelector,
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text('$_selectedYear',
-                    style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryBlue)),
-                const Icon(Icons.keyboard_arrow_down_rounded,
-                    size: 16, color: AppTheme.primaryBlue),
-              ]),
-            ),
-          ),
-        ],
-      ) : null,
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: Text('${widget.className} - Van Fees'),
+              elevation: 0,
+              actions: [
+                IconButton(
+                    icon: const Icon(Icons.picture_as_pdf_rounded),
+                    tooltip: 'Export PDF',
+                    onPressed: _downloadPdf),
+                IconButton(
+                    icon: const Icon(Icons.table_chart_rounded),
+                    tooltip: 'Export Excel',
+                    onPressed: _downloadExcel),
+                GestureDetector(
+                  onTap: _showYearSelector,
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Text('$_selectedYear',
+                          style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primaryBlue)),
+                      const Icon(Icons.keyboard_arrow_down_rounded,
+                          size: 16, color: AppTheme.primaryBlue),
+                    ]),
+                  ),
+                ),
+              ],
+            )
+          : null,
       body: Column(
         children: [
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6366F1), Color(0xFF818CF8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Van Fee Overview',
+                        style: GoogleFonts.inter(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Text('${_vanFees.length} Students',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 11)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                        child: _StatItem(
+                            label: 'Total Fee',
+                            value: '₹${totalExpected.toStringAsFixed(0)}',
+                            icon: Icons.directions_bus_rounded)),
+                    Container(width: 1, height: 40, color: Colors.white24),
+                    Expanded(
+                        child: _StatItem(
+                            label: 'Collected',
+                            value: '₹${totalPaid.toStringAsFixed(0)}',
+                            icon: Icons.check_circle_rounded)),
+                    Container(width: 1, height: 40, color: Colors.white24),
+                    Expanded(
+                        child: _StatItem(
+                            label: 'Balance',
+                            value: '₹${balance.toStringAsFixed(0)}',
+                            icon: Icons.pending_rounded)),
+                  ],
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -198,12 +269,14 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
                     : _vanFees.isEmpty
                         ? const Center(child: Text('No Van Students Enrolled'))
                         : ListView.separated(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                             itemCount: _vanFees.length,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 12),
                             itemBuilder: (ctx, i) {
-                              final isAdmin = Provider.of<AuthProvider>(context, listen: false).isAdmin;
+                              final isAdmin = Provider.of<AuthProvider>(context,
+                                      listen: false)
+                                  .isAdmin;
                               return _VanFeeCard(
                                 vanFee: _vanFees[i],
                                 selectedYear: _selectedYear,
@@ -412,5 +485,25 @@ class _VanFeeCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  const _StatItem(
+      {required this.label, required this.value, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Icon(icon, color: Colors.white70, size: 18),
+      const SizedBox(height: 6),
+      Text(value,
+          style: GoogleFonts.inter(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+      Text(label,
+          style: GoogleFonts.inter(color: Colors.white60, fontSize: 10)),
+    ]);
   }
 }
