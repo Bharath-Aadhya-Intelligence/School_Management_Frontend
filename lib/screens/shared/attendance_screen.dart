@@ -197,7 +197,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   'attendance_${widget.classId}_${_selectedDate.year}_${_selectedDate.month}.pdf',
                 );
               } catch (e) {
-                if (!mounted) return;
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                       content: Text('Export failed: $e'),
@@ -483,8 +483,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                       leading: CircleAvatar(
                         backgroundColor: isPresent
-                            ? AppTheme.paidGreen.withOpacity(0.12)
-                            : AppTheme.unpaidRed.withOpacity(0.12),
+                            ? AppTheme.paidGreen.withValues(alpha: 0.12)
+                            : AppTheme.unpaidRed.withValues(alpha: 0.12),
                         child: Text(
                           s.rollNo.isNotEmpty ? s.rollNo : '?',
                           style: GoogleFonts.inter(

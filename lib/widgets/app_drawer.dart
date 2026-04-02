@@ -34,13 +34,13 @@ class StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: _isPaid
-            ? AppTheme.paidGreen.withOpacity(0.12)
-            : AppTheme.unpaidRed.withOpacity(0.12),
+            ? AppTheme.paidGreen.withValues(alpha: 0.12)
+            : AppTheme.unpaidRed.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
             color: _isPaid
-                ? AppTheme.paidGreen.withOpacity(0.3)
-                : AppTheme.unpaidRed.withOpacity(0.3)),
+                ? AppTheme.paidGreen.withValues(alpha: 0.3)
+                : AppTheme.unpaidRed.withValues(alpha: 0.3)),
       ),
       child: Text(
         _isPaid ? (paidLabel ?? 'Paid') : (unpaidLabel ?? 'Unpaid'),
@@ -111,7 +111,7 @@ class EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon,
-                size: 72, color: AppTheme.textSecondary.withOpacity(0.4)),
+                size: 72, color: AppTheme.textSecondary.withValues(alpha: 0.4)),
             const SizedBox(height: 16),
             Text(title,
                 style: Theme.of(context).textTheme.titleLarge,

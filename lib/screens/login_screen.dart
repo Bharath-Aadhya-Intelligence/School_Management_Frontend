@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen>
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryBlue.withOpacity(0.3),
+                                color: AppTheme.primaryBlue.withValues(alpha: 0.3),
                                 blurRadius: 24,
                                 offset: const Offset(0, 8),
                               )
@@ -200,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen>
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black
-                                    .withOpacity(isDark ? 0.3 : 0.06),
+                                    .withValues(alpha: isDark ? 0.3 : 0.06),
                                 blurRadius: 24,
                                 offset: const Offset(0, 8),
                               )
@@ -310,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         color: (_isAdmin
                                                 ? AppTheme.primaryBlue
                                                 : AppTheme.staffPurple)
-                                            .withOpacity(0.35),
+                                            .withValues(alpha: 0.35),
                                         blurRadius: 16,
                                         offset: const Offset(0, 6),
                                       )

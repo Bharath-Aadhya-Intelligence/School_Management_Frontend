@@ -336,7 +336,7 @@ class _MessageLogsScreenState extends State<MessageLogsScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: statusColor.withOpacity(0.08),
+                                      color: statusColor.withValues(alpha: 0.08),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -348,7 +348,7 @@ class _MessageLogsScreenState extends State<MessageLogsScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: statusColor.withOpacity(0.12),
+                                        color: statusColor.withValues(alpha: 0.12),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(statusIcon, color: statusColor, size: 22),
@@ -373,7 +373,7 @@ class _MessageLogsScreenState extends State<MessageLogsScreen> {
                                                 padding: const EdgeInsets.symmetric(
                                                     horizontal: 8, vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: statusColor.withOpacity(0.1),
+                                                  color: statusColor.withValues(alpha: 0.1),
                                                   borderRadius: BorderRadius.circular(6),
                                                 ),
                                                 child: Text(
@@ -400,7 +400,7 @@ class _MessageLogsScreenState extends State<MessageLogsScreen> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: AppTheme.staffPurple.withOpacity(0.1),
+                                                  color: AppTheme.staffPurple.withValues(alpha: 0.1),
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 child: Text(
@@ -426,9 +426,9 @@ class _MessageLogsScreenState extends State<MessageLogsScreen> {
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                               decoration: BoxDecoration(
-                                                color: AppTheme.unpaidRed.withOpacity(0.08),
+                                                color: AppTheme.unpaidRed.withValues(alpha: 0.08),
                                                 borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(color: AppTheme.unpaidRed.withOpacity(0.2)),
+                                                border: Border.all(color: AppTheme.unpaidRed.withValues(alpha: 0.2)),
                                               ),
                                               child: Row(
                                                 crossAxisAlignment: CrossAxisAlignment.start,

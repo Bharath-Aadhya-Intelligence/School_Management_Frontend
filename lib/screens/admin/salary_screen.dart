@@ -176,7 +176,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Text('$_selectedYear',
@@ -341,7 +341,7 @@ class _SalaryCard extends StatelessWidget {
                     height: 48,
                     decoration: BoxDecoration(
                       color: isPaid
-                          ? AppTheme.paidGreen.withOpacity(0.12)
+                          ? AppTheme.paidGreen.withValues(alpha: 0.12)
                           : (isDark ? AppTheme.darkCard : AppTheme.lightBg),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(

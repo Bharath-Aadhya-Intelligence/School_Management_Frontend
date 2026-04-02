@@ -234,8 +234,8 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                   children: [
                                     CircleAvatar(
                                       backgroundColor: isPresent
-                                          ? AppTheme.paidGreen.withOpacity(0.12)
-                                          : AppTheme.unpaidRed.withOpacity(0.12),
+                                          ? AppTheme.paidGreen.withValues(alpha: 0.12)
+                                          : AppTheme.unpaidRed.withValues(alpha: 0.12),
                                       child: Text(
                                         rollNo.isNotEmpty ? rollNo : '?',
                                         style: GoogleFonts.inter(
@@ -261,9 +261,9 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                           horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
                                         color: isPresent
-                                            ? AppTheme.paidGreen.withOpacity(0.15)
+                                            ? AppTheme.paidGreen.withValues(alpha: 0.15)
                                             : AppTheme.unpaidRed
-                                                .withOpacity(0.15),
+                                                .withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
@@ -301,11 +301,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                               date: _selectedDate,
                                             );
                                           } catch (e) {
-                                            if (mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Error: ${e.toString()}')),
-                                              );
-                                            }
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Error: ${e.toString()}')),
+                                            );
                                           }
                                         },
                                         tooltip: 'Notify via WhatsApp',
@@ -340,9 +339,9 @@ class _StatChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -355,7 +354,7 @@ class _StatChip extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.inter(
-                color: color.withOpacity(0.8),
+                color: color.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w600,
                 fontSize: 12),
           ),

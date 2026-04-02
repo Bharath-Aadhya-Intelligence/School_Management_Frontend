@@ -100,6 +100,7 @@ class _FeesScreenState extends State<FeesScreen> {
       });
       if (!mounted) return;
       await _fetchFees();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Payment updated successfully'),
           backgroundColor: AppTheme.paidGreen));
@@ -248,7 +249,7 @@ class _FeesScreenState extends State<FeesScreen> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1E3A8A).withOpacity(0.3),
+                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 )
@@ -387,7 +388,7 @@ class _FeeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4))
         ],
@@ -399,7 +400,7 @@ class _FeeCard extends StatelessWidget {
           Row(children: [
             CircleAvatar(
               radius: 12,
-              backgroundColor: AppTheme.primaryBlue.withOpacity(0.12),
+              backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.12),
               child: Text(
                 fee.rollNo.isNotEmpty ? fee.rollNo : '?',
                 style: GoogleFonts.inter(
@@ -440,10 +441,11 @@ class _FeeCard extends StatelessWidget {
               Color statusColor;
               if (inst.isPaid) {
                 statusColor = AppTheme.paidGreen;
-              } else if (inst.isPartial)
+              } else if (inst.isPartial) {
                 statusColor = Colors.orange;
-              else
+              } else {
                 statusColor = AppTheme.unpaidRed;
+              }
 
               return Expanded(
                 child: Padding(
@@ -456,9 +458,10 @@ class _FeeCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.08),
+                        color: statusColor.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                        border: Border.all(
+                            color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Column(
                         children: [

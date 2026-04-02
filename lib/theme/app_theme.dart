@@ -171,7 +171,7 @@ class AppTheme {
         labelStyle: GoogleFonts.inter(color: lightTextSecondary, fontSize: 14),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: lightPrimary.withOpacity(0.08),
+        backgroundColor: lightPrimary.withValues(alpha: 0.08),
         labelStyle: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: FontWeight.w600,
@@ -293,7 +293,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: darkPrimary,
-          side: BorderSide(color: darkPrimary.withOpacity(0.5), width: 1.5),
+          side: BorderSide(color: darkPrimary.withValues(alpha: 0.5), width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -327,7 +327,7 @@ class AppTheme {
         labelStyle: GoogleFonts.inter(color: darkTextSecondary, fontSize: 14),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: darkPrimary.withOpacity(0.12),
+        backgroundColor: darkPrimary.withValues(alpha: 0.12),
         labelStyle: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: FontWeight.w600,

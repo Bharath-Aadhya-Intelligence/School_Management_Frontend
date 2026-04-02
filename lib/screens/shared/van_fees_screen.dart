@@ -175,7 +175,7 @@ class _VanFeesScreenState extends State<VanFeesScreen> {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Text('$_selectedYear',
@@ -330,7 +330,7 @@ class _VanFeeCard extends StatelessWidget {
           Row(children: [
             CircleAvatar(
               radius: 12,
-              backgroundColor: AppTheme.staffPurple.withOpacity(0.12),
+              backgroundColor: AppTheme.staffPurple.withValues(alpha: 0.12),
               child: Text(
                 vanFee.rollNo.isNotEmpty ? vanFee.rollNo : '?',
                 style: GoogleFonts.inter(
@@ -372,7 +372,7 @@ class _VanFeeCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   decoration: BoxDecoration(
                     color: isPaid
-                        ? AppTheme.paidGreen.withOpacity(0.15)
+                        ? AppTheme.paidGreen.withValues(alpha: 0.15)
                         : (isDark
                             ? AppTheme.darkCard
                             : AppTheme.lightBg),

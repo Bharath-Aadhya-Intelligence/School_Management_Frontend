@@ -84,7 +84,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -387,7 +387,7 @@ class _StaffHomeViewState extends State<_StaffHomeView> {
                                 boxShadow: [
                                   BoxShadow(
                                     color:
-                                        AppTheme.staffPurple.withOpacity(0.3),
+                                        AppTheme.staffPurple.withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   )
@@ -626,7 +626,7 @@ class _QuickActionCard extends StatelessWidget {
               color: isDark ? AppTheme.darkBorder : AppTheme.borderLight),
           boxShadow: [
             BoxShadow(
-                color: color.withOpacity(0.08),
+                color: color.withValues(alpha: 0.08),
                 blurRadius: 12,
                 offset: const Offset(0, 4))
           ],
@@ -637,7 +637,7 @@ class _QuickActionCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: color, size: 28),
             ),

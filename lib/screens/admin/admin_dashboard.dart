@@ -39,7 +39,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -178,7 +178,7 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
                                   boxShadow: [
                                     BoxShadow(
                                       color:
-                                          AppTheme.primaryBlue.withOpacity(0.3),
+                                          AppTheme.primaryBlue.withValues(alpha: 0.3),
                                       blurRadius: 20,
                                       offset: const Offset(0, 8),
                                     )
@@ -400,12 +400,12 @@ class _ActionChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isDark
-              ? AppTheme.primaryBlue.withOpacity(0.12)
+              ? AppTheme.primaryBlue.withValues(alpha: 0.12)
               : const Color(0xFFEFF6FF),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isDark
-                ? AppTheme.primaryBlue.withOpacity(0.3)
+                ? AppTheme.primaryBlue.withValues(alpha: 0.3)
                 : const Color(0xFFBFDBFE),
           ),
         ),

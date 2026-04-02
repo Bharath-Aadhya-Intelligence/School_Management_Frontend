@@ -584,7 +584,7 @@ class _StudentCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -628,7 +628,7 @@ class _StudentCard extends StatelessWidget {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.staffPurple.withOpacity(0.12),
+                          color: AppTheme.staffPurple.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -722,7 +722,7 @@ class StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color:
-            (isPaid ? AppTheme.paidGreen : AppTheme.unpaidRed).withOpacity(0.1),
+            (isPaid ? AppTheme.paidGreen : AppTheme.unpaidRed).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -754,7 +754,7 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: AppTheme.textSecondary.withOpacity(0.5)),
+          Icon(icon, size: 64, color: AppTheme.textSecondary.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(title, style: Theme.of(context).textTheme.titleLarge),
           if (subtitle != null) ...[

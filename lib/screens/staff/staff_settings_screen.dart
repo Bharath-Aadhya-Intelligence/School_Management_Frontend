@@ -361,7 +361,7 @@ class StaffSettingsScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppTheme.staffPurple.withOpacity(0.1)
+                ? AppTheme.staffPurple.withValues(alpha: 0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
@@ -422,7 +422,7 @@ class _SettingsItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: (iconColor ?? AppTheme.staffPurple).withOpacity(0.1),
+                color: (iconColor ?? AppTheme.staffPurple).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: iconColor ?? AppTheme.staffPurple),
