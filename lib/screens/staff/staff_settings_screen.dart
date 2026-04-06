@@ -117,52 +117,6 @@ class _StaffSettingsScreenState extends State<StaffSettingsScreen> {
     }
   }
 
-  Future<void> _deleteClass(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Class?'),
-        content: const Text(
-            'This will permanently delete this class and all associated students, attendance, and fee records. This action cannot be undone.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    try {
-      await ApiClient.delete('/classes/');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Class deleted successfully'),
-            backgroundColor: AppTheme.unpaidRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        widget.onRefresh?.call();
-      }
-    } on ApiException catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: AppTheme.unpaidRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
   Future<void> _exportPdf(BuildContext context) async {
     if (widget.classId.isEmpty) return;
     try {
@@ -320,14 +274,6 @@ class _StaffSettingsScreenState extends State<StaffSettingsScreen> {
               title: 'Edit Class Name',
               subtitle: 'Update your official class designation',
               onTap: () => _editClassName(context),
-            ),
-            const SizedBox(height: 12),
-            _SettingsItem(
-              icon: Icons.delete_forever_rounded,
-              title: 'Delete My Class',
-              subtitle: 'Permanently remove class and all data',
-              iconColor: Colors.red,
-              onTap: () => _deleteClass(context),
             ),
             const SizedBox(height: 24),
           ],
