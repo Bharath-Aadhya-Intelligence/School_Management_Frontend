@@ -124,6 +124,82 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
     }
   }
 
+  Future<void> _deleteClass(String classId, String className) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete $className?', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.unpaidRed)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete this class? This is a PERMANENT, production-grade cascading deletion.',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            const Text('The following data will be removed:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('• All Student records'),
+            const Text('• All Attendance logs'),
+            const Text('• All Fee installments and Van fee history'),
+            const SizedBox(height: 12),
+            const Text(
+              'A snapshot will be archived for recovery, but active access will be blocked immediately.',
+              style: TextStyle(fontStyle: FontStyle.italic, fontSize: 13, color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.unpaidRed, foregroundColor: Colors.white),
+            child: const Text('Delete Everything'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final res = await ApiClient.delete('/classes/$classId?confirm=true');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'])));
+      _fetchClasses();
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
+  Future<void> _showRestoreDialog() async {
+    final ctrl = TextEditingController();
+    final res = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Restore Class'),
+        content: TextField(
+          controller: ctrl,
+          decoration: const InputDecoration(labelText: 'Class ID', hintText: 'Enter the archived Class ID'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, ctrl.text), child: const Text('Restore')),
+        ],
+      ),
+    );
+
+    if (res == null || res.isEmpty) return;
+
+    try {
+      final data = await ApiClient.post('/classes/$res/restore', {});
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'])));
+      _fetchClasses();
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +207,11 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history_rounded),
+            tooltip: 'Restore Archived Class',
+            onPressed: _showRestoreDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.people_alt_outlined),
             tooltip: 'Staff Management',
@@ -267,7 +348,10 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
-                            (ctx, i) => _ClassCard(cls: _classes[i]),
+                            (ctx, i) => _ClassCard(
+                              cls: _classes[i],
+                              onDelete: () => _deleteClass(_classes[i].classId, _classes[i].name),
+                            ),
                             childCount: _classes.length,
                           ),
                         ),
@@ -282,7 +366,8 @@ class _AdminHomeViewState extends State<_AdminHomeView> {
 
 class _ClassCard extends StatelessWidget {
   final ClassModel cls;
-  const _ClassCard({required this.cls});
+  final VoidCallback onDelete;
+  const _ClassCard({required this.cls, required this.onDelete});
 
   static const _gradients = [
     [Color(0xFF2563EB), Color(0xFF1D4ED8)],
@@ -332,9 +417,26 @@ class _ClassCard extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.w700)),
                 const Spacer(),
-                Text(cls.staffEmail,
-                    style:
-                        GoogleFonts.inter(color: Colors.white70, fontSize: 11)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(cls.staffEmail,
+                        style:
+                            GoogleFonts.inter(color: Colors.white70, fontSize: 11)),
+                    const SizedBox(height: 4),
+                    InkWell(
+                      onTap: onDelete,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white12,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Icon(Icons.delete_forever_rounded, color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
