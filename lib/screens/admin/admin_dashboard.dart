@@ -54,6 +54,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w500),
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
+          type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
