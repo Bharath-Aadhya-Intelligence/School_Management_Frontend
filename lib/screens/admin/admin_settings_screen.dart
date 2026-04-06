@@ -19,6 +19,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
   List<ClassModel> _classes = [];
   ClassModel? _selectedClass;
   bool _isLoadingClasses = true;
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -231,9 +232,24 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
 
           const Spacer(),
           ElevatedButton.icon(
-            onPressed: () => auth.logout(),
-            icon: const Icon(Icons.logout_rounded),
-            label: const Text('Logout'),
+            onPressed: _isLoggingOut 
+              ? null 
+              : () async {
+                  setState(() => _isLoggingOut = true);
+                  try {
+                    await auth.logout();
+                  } finally {
+                    if (mounted) setState(() => _isLoggingOut = false);
+                  }
+                },
+            icon: _isLoggingOut 
+              ? const SizedBox(
+                  width: 20, 
+                  height: 20, 
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
+                )
+              : const Icon(Icons.logout_rounded),
+            label: Text(_isLoggingOut ? 'Logging out...' : 'Logout'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.unpaidRed,
               foregroundColor: Colors.white,

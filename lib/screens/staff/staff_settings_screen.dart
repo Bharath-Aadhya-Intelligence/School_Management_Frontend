@@ -7,10 +7,17 @@ import '../../providers/theme_provider.dart';
 import '../../api/api_client.dart';
 import '../../services/file_service.dart';
 
-class StaffSettingsScreen extends StatelessWidget {
+class StaffSettingsScreen extends StatefulWidget {
   final String classId;
   final VoidCallback? onRefresh;
   const StaffSettingsScreen({super.key, required this.classId, this.onRefresh});
+
+  @override
+  State<StaffSettingsScreen> createState() => _StaffSettingsScreenState();
+}
+
+class _StaffSettingsScreenState extends State<StaffSettingsScreen> {
+  bool _isLoggingOut = false;
 
   void _clearLocalData(BuildContext context) {
     showDialog(
@@ -95,7 +102,7 @@ class StaffSettingsScreen extends StatelessWidget {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        onRefresh?.call();
+        widget.onRefresh?.call();
       }
     } on ApiException catch (e) {
       if (context.mounted) {
@@ -141,7 +148,7 @@ class StaffSettingsScreen extends StatelessWidget {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        onRefresh?.call();
+        widget.onRefresh?.call();
       }
     } on ApiException catch (e) {
       if (context.mounted) {
@@ -157,11 +164,11 @@ class StaffSettingsScreen extends StatelessWidget {
   }
 
   Future<void> _exportPdf(BuildContext context) async {
-    if (classId.isEmpty) return;
+    if (widget.classId.isEmpty) return;
     try {
       final now = DateTime.now();
-      final fileName = 'attendance_${classId}_${now.year}_${now.month}.pdf';
-      final path = '/exports/attendance/$classId/${now.year}/${now.month}/pdf';
+      final fileName = 'attendance_${widget.classId}_${now.year}_${now.month}.pdf';
+      final path = '/exports/attendance/${widget.classId}/${now.year}/${now.month}/pdf';
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -184,12 +191,12 @@ class StaffSettingsScreen extends StatelessWidget {
   }
 
   Future<void> _exportExcel(BuildContext context) async {
-    if (classId.isEmpty) return;
+    if (widget.classId.isEmpty) return;
     try {
       final now = DateTime.now();
-      final fileName = 'attendance_${classId}_${now.year}_${now.month}.xlsx';
+      final fileName = 'attendance_${widget.classId}_${now.year}_${now.month}.xlsx';
       final path =
-          '/exports/attendance/$classId/${now.year}/${now.month}/excel';
+          '/exports/attendance/${widget.classId}/${now.year}/${now.month}/excel';
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -307,7 +314,7 @@ class StaffSettingsScreen extends StatelessWidget {
           Text('Class Management',
               style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 12),
-          if (classId.isNotEmpty) ...[
+          if (widget.classId.isNotEmpty) ...[
             _SettingsItem(
               icon: Icons.edit_note_rounded,
               title: 'Edit Class Name',
@@ -354,9 +361,24 @@ class StaffSettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 32),
           ElevatedButton.icon(
-            onPressed: () => auth.logout(),
-            icon: const Icon(Icons.logout_rounded),
-            label: const Text('Logout'),
+            onPressed: _isLoggingOut 
+              ? null 
+              : () async {
+                  setState(() => _isLoggingOut = true);
+                  try {
+                    await auth.logout();
+                  } finally {
+                    if (mounted) setState(() => _isLoggingOut = false);
+                  }
+                },
+            icon: _isLoggingOut 
+              ? const SizedBox(
+                  width: 20, 
+                  height: 20, 
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
+                )
+              : const Icon(Icons.logout_rounded),
+            label: Text(_isLoggingOut ? 'Logging out...' : 'Logout'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.unpaidRed,
               foregroundColor: Colors.white,
