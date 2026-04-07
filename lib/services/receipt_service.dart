@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:open_file_plus/open_file_plus.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart';
@@ -61,7 +61,7 @@ class ReceiptService {
       await file.writeAsBytes(bytes, flush: true);
 
       // 6. Open File Automatically
-      final result = await OpenFile.open(filePath);
+      final result = await OpenFilex.open(filePath);
       if (result.type != ResultType.done) {
         // If it failed to open but saved successfully, we still return the path
         debugPrint('Warning: File saved but failed to open automatically: ${result.message}');
