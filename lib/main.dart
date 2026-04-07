@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
+import 'providers/receipt_provider.dart';
 
 import 'providers/theme_provider.dart';
 import 'screens/splash_screen.dart';
@@ -23,6 +24,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ReceiptProvider()),
       ],
       child: const SchoolManagementApp(),
     ),
