@@ -151,30 +151,28 @@ class _SalaryScreenState extends State<SalaryScreen> {
           // Year selector
           GestureDetector(
             onTap: () async {
-              final years = [
-                DateTime.now().year - 1,
-                DateTime.now().year,
-                DateTime.now().year + 1
-              ];
-              final selected = await showDialog<int>(
+              final selectedDate = await showDialog<DateTime>(
                 context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Select Year'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: years
-                        .map((y) => ListTile(
-                              title: Text('$y'),
-                              selected: y == _selectedYear,
-                              selectedColor: AppTheme.primaryBlue,
-                              onTap: () => Navigator.pop(ctx, y),
-                            ))
-                        .toList(),
-                  ),
-                ),
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Select Year"),
+                    content: SizedBox(
+                      width: 300,
+                      height: 300,
+                      child: YearPicker(
+                        firstDate: DateTime(DateTime.now().year - 20),
+                        lastDate: DateTime(DateTime.now().year + 10),
+                        selectedDate: DateTime(_selectedYear),
+                        onChanged: (DateTime dateTime) {
+                          Navigator.pop(context, dateTime);
+                        },
+                      ),
+                    ),
+                  );
+                },
               );
-              if (selected != null) {
-                setState(() => _selectedYear = selected);
+              if (selectedDate != null) {
+                setState(() => _selectedYear = selectedDate.year);
                 _fetchSalaries();
               }
             },
@@ -185,6 +183,9 @@ class _SalaryScreenState extends State<SalaryScreen> {
                   color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.calendar_month_rounded,
+                    size: 16, color: AppTheme.primaryBlue),
+                const SizedBox(width: 6),
                 Text('$_selectedYear',
                     style: GoogleFonts.inter(
                         fontWeight: FontWeight.w600,
