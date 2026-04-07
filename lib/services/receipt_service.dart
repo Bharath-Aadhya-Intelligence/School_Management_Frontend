@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:open_file_plus/open_file_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/foundation.dart';
 import '../api/api_client.dart';
 
 class ReceiptService {
@@ -35,10 +36,12 @@ class ReceiptService {
       // 3. Determine Save Directory
       Directory? directory;
       if (Platform.isAndroid) {
-        // Use Downloads directory on Android
-        directory = Directory('/storage/emulated/0/Download');
-        if (!await directory.exists()) {
-          directory = await getExternalStorageDirectory();
+        // Use External Storage Directory and attempt to get the Downloads folder
+        final baseDir = await getExternalStorageDirectory();
+        if (baseDir != null) {
+          // On Android, we usually want to save it in a user-accessible place
+          // but for now we use the app's external files directory which is safer.
+          directory = baseDir;
         }
       } else {
         // Use Documents directory on iOS
@@ -58,10 +61,10 @@ class ReceiptService {
       await file.writeAsBytes(bytes, flush: true);
 
       // 6. Open File Automatically
-      final result = await OpenFilePlus.open(filePath);
+      final result = await OpenFile.open(filePath);
       if (result.type != ResultType.done) {
         // If it failed to open but saved successfully, we still return the path
-        print('Warning: File saved but failed to open automatically: ${result.message}');
+        debugPrint('Warning: File saved but failed to open automatically: ${result.message}');
       }
 
       return filePath;
