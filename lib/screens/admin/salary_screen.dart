@@ -22,18 +22,18 @@ class _SalaryScreenState extends State<SalaryScreen> {
   bool _toggling = false;
 
   static const _monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
     'Jun',
     'Jul',
     'Aug',
     'Sep',
     'Oct',
     'Nov',
-    'Dec'
+    'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
   ];
 
   @override
@@ -270,7 +270,8 @@ class _SalaryScreenState extends State<SalaryScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
                     ? Center(
-                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
                         const Icon(Icons.error_outline_rounded,
                             size: 64, color: AppTheme.unpaidRed),
                         const SizedBox(height: 16),
@@ -464,6 +465,7 @@ class _SalaryCard extends StatelessWidget {
     );
   }
 }
+
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
