@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   static const String baseUrl =
-      'https://school-management-backend-4zrj.onrender.com';
+      'https://school-management-backend-pdx6.onrender.com';
   static const String apiKey = 'school-app-2024';
 
   static Future<Map<String, String>> _headers({bool withAuth = true}) async {
