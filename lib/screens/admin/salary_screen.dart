@@ -99,6 +99,26 @@ class _SalaryScreenState extends State<SalaryScreen> {
     }
   }
 
+  Future<void> _initAllSalaries() async {
+    setState(() => _isLoading = true);
+    try {
+      await ApiClient.post('/salary/init-all/$_selectedYear', {});
+      if (!mounted) return;
+      await _fetchSalaries();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('All salary records initialized'),
+            backgroundColor: AppTheme.paidGreen));
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(e.message), backgroundColor: AppTheme.unpaidRed));
+      }
+    }
+  }
+
   Future<void> _exportPdf() async {
     try {
       final fileName = 'staff_salary_$_selectedYear.pdf';
@@ -148,6 +168,32 @@ class _SalaryScreenState extends State<SalaryScreen> {
               icon: const Icon(Icons.table_chart_rounded),
               tooltip: 'Export Excel',
               onPressed: _exportExcel),
+          IconButton(
+            icon: const Icon(Icons.auto_awesome_rounded),
+            tooltip: 'Initialize All Staff Salaries',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Initialize Salaries'),
+                  content: Text(
+                      'This will create empty salary records for all staff for the year $_selectedYear. Continue?'),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel')),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _initAllSalaries();
+                      },
+                      child: const Text('Initialize'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           // Year selector
           GestureDetector(
             onTap: () async {
